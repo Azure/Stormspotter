@@ -1,6 +1,5 @@
-<span style="display:block;text-align:center">![StormspotterLogo](misc/stormspotter.png)</span>
-
 <p align="center">
+    <img src="misc/stormspotter.png" /><br>
     <img src="https://img.shields.io/badge/Version-1.0a-red" />
     <img src="https://img.shields.io/badge/python-3.8-success" />
 </p>
