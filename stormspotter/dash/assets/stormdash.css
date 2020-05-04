@@ -1,0 +1,397 @@
+@font-face{
+    font-family: 'Cascadia Mono';
+    src: url('CascadiaMono.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+
+._dash-loading{
+    background-color: #21273D;
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    text-indent: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+body{
+    margin: 0;
+    background-color: rgb(6, 10, 24);
+    font-family: 'Cascadia Mono';
+
+}
+
+.login-container{
+    display: flex;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50%);
+    background-color: #21273D;
+    color: white;
+    text-align: center;
+    z-index: 1;
+}
+
+.login-button{
+    color: white;
+    font-family: "Cascadia Mono";
+    font-size: 13px;
+    padding: 10px;
+    width: 222px;
+    float: right;
+    background-color: #0007ff;
+    border-radius: 5px;
+
+}
+
+.login-value{
+    color: rgb(5, 5, 36);
+    font-family: "Cascadia Mono";
+    font-size: 13px;
+    padding: 10px;
+    margin-left: 5px;
+    width: 200px;
+    border-radius: 5px;
+}
+
+.cytoDiv{
+    width: 100%;
+    height: 100%;
+    padding:0;
+    margin:0;
+    position: absolute;
+}
+
+body{
+    margin: 0;
+}
+
+pre{
+    font-size: 16px;
+}
+
+textarea{
+    color: white;
+}
+
+._dash-undo-redo {
+    display: none;
+}
+
+.container{
+    display: flex;
+}
+
+.pageDiv{
+    width: 100%;
+    height: 100%;
+    float: right;
+    padding:0;
+    margin:0;
+    position: absolute;
+    background-color: #050442;
+}
+
+.legend{
+    z-index: 1;
+    width: 40px;
+    height: 100px;
+    opacity: 0.8;
+    color: white;
+    font-family: "Cascadia Mono";
+    text-align: center;
+    border-radius: 10%;  
+    background-color: #00000070;
+    padding: 10px;
+    left: 1%;
+    bottom: 1%;
+    position: fixed;
+    
+}
+
+.cypher{
+    position: fixed;
+    padding: 10px !important;
+    font-size: 18px !important;
+    vertical-align: top;
+    border-color: #0007ff;
+    background-color: #0983af;
+    color: white !important; 
+    resize: none;
+    bottom: 2%;
+    left: 5%;
+    width: 50%;
+    overflow: auto;
+    vertical-align: middle;
+}
+
+.functionIcons{
+
+    z-index: 1;
+    position: fixed;
+    width: 45px;
+    height: 100px;
+    border-radius: 10%;
+}
+
+.tooltip{
+    color: white;
+    margin-left: 20px;
+    margin-bottom: 20px;
+    border: none;
+    background-color: #00000070;
+    max-width: fit-content;
+}
+
+.tooltip-inner {
+    white-space: pre;
+}
+
+
+.icon {
+    height: 24px;
+    width: 24px;
+    padding-bottom: 20px;
+}
+.custom-tabs {
+    right: 2%;
+    position: fixed;
+    margin-top: 20px;
+    width: 30%;
+    border-radius: 10px;
+    padding: 0;
+    border: 0px solid #474747;
+    min-width: 380px;
+    max-height: 200px;
+}
+
+.custom-tab {
+    color:#586069;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    border-top: 3px solid transparent !important;
+    border-left: 0px !important;
+    border-right: 0px !important;
+    border-bottom: 0px !important;
+    padding: 4px !important;
+    font-family: "Cascadia Mono";
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 14px;
+}
+.custom-tab--selected {
+    color: black;
+    box-shadow: 1px 1px 0px white;
+    border-left: 1px solid lightgrey !important;
+    border-right: 1px solid lightgrey !important;
+    border-top: 3px solid #e36209 !important;
+}
+
+.dbinfocontent{
+    color: white;
+    background-color: rgb(5, 5, 36);
+    padding:0;
+    margin:0;
+    height: 37%;
+    width: 100%;
+    border-bottom-left-radius: 2%;
+    border-bottom-right-radius: 2%;
+    position: relative;
+}
+
+.nodeinfocontent{
+    color: white;
+    background-color: rgb(5, 5, 36);
+    padding:0px 0px 5px 0px;
+    margin:0;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    position: relative;
+    border: 0px solid #474747;
+    font-family: "Cascadia Mono";
+    font-size: 15px;
+    overflow: auto;
+    max-height: 70vh;
+    table-layout: fixed;
+    opacity: 0.9;
+}
+
+.nodeinfocontent .table{
+    border-collapse: collapse;
+}
+
+
+
+.filtertable{
+    margin: 0;
+    padding: 0;
+    background-color: rgb(5, 5, 36);
+    width: 100%;
+    border-bottom: 3px solid rgb(161, 161, 161);
+    color: white;
+}
+
+.filtername{
+    color: white;
+    font-family: "Cascadia Mono";
+    font-size: 15px;
+    padding: 1px 1px 1px 1px;
+    width: 200px;
+}
+
+.filtervalue{
+    color: white;
+    font-family: "Cascadia Mono";
+    font-size: 15px;
+    padding: 0px;
+    width: 310px;
+    height: 30px;
+    background-color: #002735;
+    border-radius: 5px;
+    margin-left: 2px;
+
+}
+
+.filterbutton{
+    width: 45px;
+    height: 35px;
+    border-radius: 5px;
+    background-color: #002735;
+    font-size: 20px;
+    float: right;
+    align-items: flex-end;
+    padding: 1px 1px 1px 1px;
+}
+ .Select-control{
+     background-color: #04384b;
+     color: white;
+     
+ }
+
+ .Select-menu{
+    background-color: #04384b;
+    color: white !important;
+}
+
+ .Select-option{
+    background-color: #04384b;
+    color: white !important;
+}
+
+.Select-value-label{
+    color: white !important;
+}
+
+.tablerows{
+    width: 100%;
+    border-bottom-width: 100%;
+    font-family: "Cascadia Mono";
+}
+
+.legendrows{
+    width: 50%;
+    border-bottom-width: 50%;
+}
+
+.rowname{
+    color: #00bbff;
+    font-family: "Cascadia Mono";
+    font-weight: 600;
+    font-size: 14px;
+    padding: 5px;
+    width: 40%;
+    text-align: left;
+    
+}
+
+.rowvalue{
+    color: white;
+    font-family: "Cascadia Mono";
+    font-size: 14px;
+    padding-right: 2px;
+    text-align: left;
+    width: 60%;
+    word-break: break-word;
+}
+
+.legendindicator{
+    color: white;
+    font-family: "Cascadia Mono";
+    font-weight: 900;
+    font-size: 13px;
+    padding: 9px;
+    width: 10%;
+}
+
+.legendvalue{
+    color: white;
+    font-family: "Cascadia Mono";
+    font-size: 13px;
+    border-left: 0;
+    padding-left: 2px;
+    text-align: left;
+}
+
+.nodetable{
+    border-collapse: collapse;
+    margin: 0;
+    padding: 0;
+}
+
+.rawDiv{
+    right: 1%;
+    bottom: 2%;
+    z-index: 1;
+    position: fixed;
+    width: 45px;
+    height: 40%;
+    margin-top: 20px;
+    width: 25%;
+    border-radius: 10px;
+    border: 2px solid lightgray;
+    padding: 0;
+    border: 0px solid #474747;
+    overflow: auto;
+    color: white;
+    font-family: "Cascadia Mono";
+    font-size: 16px;
+    background-color: black;
+}
+
+.bgbutton{
+    font-family: "Cascadia Mono";
+    color: white;
+    background-color:#0983af;
+    border-bottom-right-radius: 2%;
+    float: right;
+    border-color:  rgb(5, 5, 36);
+    padding: 5px;
+    width: 20%;
+    height: 60px;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 5px;
+    font-size: 15px;
+}
+
+.upload-button{
+    width: 33%;
+    height: 60px;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 5px;
+    position: absolute;
+    background-color: green;
+    font-family: "Cascadia Mono";
+    font-size: 15px;
+    align-items: flex-end;
+}
+
+.rawswitch{
+    color: white;
+    margin-top: 20px;
+}
