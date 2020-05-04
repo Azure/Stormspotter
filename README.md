@@ -1,4 +1,4 @@
-<span style="display:block;text-align:center">![StormspotterLogo](misc/stormspotter.png)
+<span style="display:block;text-align:center">![StormspotterLogo](misc/stormspotter.png)<br>
 ![](https://img.shields.io/badge/Version-1.0a-red)
 ![](https://img.shields.io/badge/python-3.8-success)</span>
 
