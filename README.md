@@ -6,13 +6,13 @@
 
 # Stormspotter
 
-Stormspotter creates a neo4j graph view of you Azure subscription and assets as well as Azure AD tenants using public APIs. It needs reader access to the subscription you wish to import as well as Directory.Read access to the Azure AD tenants. 
+Stormspotter creates a neo4j graph view of your Azure subscription and assets as well as Azure AD tenants using public APIs. It needs reader access to the subscription you wish to import and/or Directory.Read access to the Azure AD tenants. 
 
 
 ## Getting Started
 
 ### Neo4j
-Create  a local neo4j graph. This can be done locally or through docker.
+Create a local neo4j graph. This can be done locally or through docker.
 
 #### Local installation
 - Install [Neo4j Desktop](https://neo4j.com/download/)
