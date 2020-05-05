@@ -12,6 +12,7 @@ from stormspotter.dash.layout.ui import app_layout
 from stormspotter.dash.core.context import DashParser
 from stormspotter.dash.core.parsers import getNodeInfo, getEdgeInfo, checkDoubleClick
 
+parser = None
 app = dash.Dash(__name__, assets_folder=Path("stormspotter/dash/assets").absolute())
 app.config.suppress_callback_exceptions = True
 app.layout = app_layout(app)
@@ -147,17 +148,22 @@ def cypher_query(cyenter, filenter, filbutton, tapNode, tapEdge, query, filvalue
 
     return []
 
-if __name__ == "__main__":
+def main():
+    global parser
+
     dcy.load_extra_layouts()
-    parser = argparse.ArgumentParser(description='Stormspotter')
-    parser.add_argument("--dbuser", "-dbu", required=True,
+    argparser = argparse.ArgumentParser(description='Stormspotter')
+    argparser.add_argument("--dbuser", "-dbu", required=True,
                         help='Username for neo4j', default="neo4j")
-    parser.add_argument("--dbpass", "-dbp", required=True,
+    argparser.add_argument("--dbpass", "-dbp", required=True,
                         help='Password for neo4j')
-    parser.add_argument("--db",
+    argparser.add_argument("--db",
                         help='Url of database', default="bolt://localhost:7687")
 
-    args = parser.parse_args()
+    args = argparser.parse_args()
     # parser = DashParser("neo4j", "password")
     parser = DashParser(args.dbuser, args.dbpass, args.db)
     app.run_server(debug=False, threaded=True)
+
+if __name__ == "__main__":
+    main()

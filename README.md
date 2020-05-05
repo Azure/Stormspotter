@@ -8,49 +8,55 @@
 
 Stormspotter creates a neo4j graph view of your Azure subscription and assets as well as Azure AD tenants using public APIs. It needs reader access to the subscription you wish to import and/or Directory.Read access to the Azure AD tenants. 
 
+---
 
 ## Getting Started
 
-### Neo4j
-Create a local neo4j graph. This can be done locally or through docker.
+### Prerequisites
 
-#### Local installation
-- Install [Neo4j Desktop](https://neo4j.com/download/)
-- Create a local database (Add Graph -> Create A Local Graph)
+- Stormspotter is developed in Python 3.8.
+- Install [Neo4j](https://neo4j.com/download/). Installation directions for your preferred operating system are located [here](https://neo4j.com/docs/operations-manual/current/installation/), although you may prefer the ease of a docker container:
 
-#### Docker
 ```
 docker run --name stormspotter -p7474:7474 -p7687:7687 -d --env NEO4J_AUTH=neo4j/[password] neo4j:latest
 ```
-
-### Running Stormspotter
-In order to avoid conflicting packages, it is recommended to run Stormspotter in a virtual environment.
+---
+## Running Stormspotter
+In order to avoid conflicting packages, it is highly recommended to run Stormspotter in a virtual environment.
 
 1. Install the requirements
+
+    - Via pip
     ```
-    pipenv install
-    pip install -r requirements.txt
+    pipenv install stormspotter
+    ```
+
+    - From the repository   
+    ```
+    git clone https://github.com/Azure/Stormspotter
+    cd Stormspotter
+    pipenv install -e .
     ```
 
 #### Providing credentials
 Current login types supported: 
 
 - Azure CLI (must use `az login` first)
-- Service Principal Client Id/Secret
+- Service Principal Client ID/Secret
 
 #### Gather and view resources
 
 1. Run stormspotter to gather resource and object information
     ```
-    python stormspotter.py --cli
+    stormspotter --cli
    ```
 
 2. Run stormdash to launch dashboard
     ```
-    python stormdash.py -dbu <neo4j-user> -dbp <neo4j-pass>
+    stormdash -dbu <neo4j-user> -dbp <neo4j-pass>
     ```
 
-3. Place results zipfile into `data/input` folder. You may also place the zipfile into the folder before running `stormdash` and it will be processed.
+3. During installation, a `.stormspotter` folder is created in the user's home directory. Place the results zip file into `~/.stormspotter/input` folder. You may also place the zip file into the folder before running `stormdash` and it will be processed when Stormspotter starts. When a file is successfully processed, it will be moved into `~/.stormspotter/processed`.
    
 # Screenshots
 

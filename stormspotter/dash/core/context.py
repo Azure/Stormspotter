@@ -18,8 +18,8 @@ class DashParser:
     def __init__(self, user, password, server):
         self.neo = Neo4j(user=user, password=password, server=server)
         self.tenant = None
-        self.data_path = Path(__file__).parents[3].absolute() / "data/input"
-        self.processed_path = Path(__file__).parents[3].absolute() / "data/processed"
+        self.data_path = Path.home() / ".stormspotter/input"
+        self.processed_path = Path.home() / ".stormspotter/processed"
         self.observer = Observer()
 
         self.event_handler = FileSystemEventHandler()
@@ -408,7 +408,6 @@ class DashParser:
 
         for f in finals:
             self.neo.query(f)
-        print("done")
 
     def query_build(self, name, key, value):
         query = "MATCH (n"
