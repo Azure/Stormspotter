@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "eba1853579b77bae36a5e219f72cc4785026cc3552c788bcf3af71dfded4c074"
+            "sha256": "0f0de1904973d19ea9a444005c9f38c037d9d7e930a7d3dc0cf3d7124cda0821"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -42,6 +42,7 @@
                 "sha256:5b2d3952f7edab1a34d7421b5a7ff1aabf32d9fca6614bdac5ec9938e64b7caa",
                 "sha256:668d45eef11ff155969c205b730d044d18d4729bf70d127f85cfd85ed69bff98"
             ],
+            "index": "pypi",
             "version": "==2.5.1"
         },
         "azure-cli-nspkg": {
@@ -79,6 +80,7 @@
                 "sha256:31e875a34ac2c5d6fefe77b4a8079a8b2bdbe9edb957e47e8b44222fb212d6a7",
                 "sha256:9d64295cf4210ec14e98fb024a6b4d79d68ef50cdb3804f0b53f8567e52d847f"
             ],
+            "index": "pypi",
             "version": "==0.60.0"
         },
         "azure-mgmt-core": {
@@ -86,6 +88,7 @@
                 "sha256:510faf49a10daec8346cc086143d8e667ef3b4f8c8022a8e710091027631a55e",
                 "sha256:b481a7d4239b11476a2f54e947ccb8c8fdf26dd35f72e13b904e9f1208a0bad6"
             ],
+            "index": "pypi",
             "version": "==1.0.0"
         },
         "azure-mgmt-resource": {
@@ -93,6 +96,7 @@
                 "sha256:055e85a4053a987bf427653e75f537c750ecc27c0e7c74623a67cb859689b5a6",
                 "sha256:dc12f7998e2c1fd4088a8da5f02936c2985ceb7acbe994571c8b3778f26a7501"
             ],
+            "index": "pypi",
             "version": "==9.0.0"
         },
         "azure-nspkg": {
@@ -251,32 +255,36 @@
         },
         "dash": {
             "hashes": [
-                "sha256:57e32410a4f0f9fef0cdcd61f801bd01738f343ad308fa51592859ef9bc5c5ad"
+                "sha256:aa9bed7b7d85b9bdf4ac1669d206a86024098d1b2b3a88b0bce12012979939a5"
             ],
-            "version": "==1.11.0"
+            "index": "pypi",
+            "version": "==1.12.0"
         },
         "dash-bootstrap-components": {
             "hashes": [
                 "sha256:ab6ff87baf3b1bab0877694b1a8eb8ad561ef7b06b55941098b740e5016edce0"
             ],
+            "index": "pypi",
             "version": "==0.9.2"
         },
         "dash-core-components": {
             "hashes": [
-                "sha256:ea72f514d841caa1b42a1c6092d00c05cc63768916d33563e994114c1a022656"
+                "sha256:30b90cf43da5ed1a8cd08bb23ee90fb9930b534856672906541cac014fed1baf"
             ],
-            "version": "==1.9.1"
+            "version": "==1.10.0"
         },
         "dash-cytoscape": {
             "hashes": [
                 "sha256:0cb0d26ba39273cecbb95ee61ceb9faebb71fd6617b7d5f245a73afb9c308444"
             ],
+            "index": "pypi",
             "version": "==0.1.1"
         },
         "dash-daq": {
             "hashes": [
                 "sha256:a1d85b6799f7b885652fbc44aebdb58c41254616a8d350b943beeb42ade4256a"
             ],
+            "index": "pypi",
             "version": "==0.5.0"
         },
         "dash-html-components": {
@@ -287,15 +295,15 @@
         },
         "dash-renderer": {
             "hashes": [
-                "sha256:c56e57f0b55ff0d7bb0f4df71060879460b2d22387fe01394fa84f85c71f66ed"
+                "sha256:bbb23ba60014924225cb7385d73619843050c363d96486a3cb14ea6fca39d485"
             ],
-            "version": "==1.4.0"
+            "version": "==1.4.1"
         },
         "dash-table": {
             "hashes": [
-                "sha256:5ceabd434bc63a9d1aa5bf4f00b55d2e5342072e274f0ee6fc53bc58bef4c1c2"
+                "sha256:5512ef89d8106dd87dd9a5c604687f08bf6ae4c37a33e6aa472c2b7d25c6a755"
             ],
-            "version": "==4.6.2"
+            "version": "==4.7.0"
         },
         "flask": {
             "hashes": [
@@ -435,6 +443,7 @@
             "hashes": [
                 "sha256:82169d548f984f745a519bc8a70cce05662fb7e10ed0179984ca2d45736bc01e"
             ],
+            "index": "pypi",
             "version": "==1.7.6"
         },
         "neobolt": {
@@ -474,6 +483,7 @@
                 "sha256:7424f2c8511c186cd5424bbf31045b77435b37a8d604990b79d4e70d741148bb",
                 "sha256:a6d9e40ca61ad3ebd0b72fbadd4fba16e4c0e4df0428c041e01e06eb6ee71f32"
             ],
+            "index": "pypi",
             "version": "==1.5.0.1"
         },
         "plotly": {
@@ -627,6 +637,7 @@
                 "sha256:085eb2e917fd4a616987a0b607b06a8324fa882a5dfa5a05ee8389f84a0d518e",
                 "sha256:ee1c31241426f19e7f1f8b2036ab86a3f3ff78a3ae7166c02c112a940bd20915"
             ],
+            "index": "pypi",
             "version": "==0.1.2"
         },
         "six": {
@@ -637,7 +648,6 @@
             "version": "==1.14.0"
         },
         "stormspotter": {
-            "editable": true,
             "path": "."
         },
         "tabulate": {
@@ -658,6 +668,7 @@
             "hashes": [
                 "sha256:c560efb643faed5ef28784b2245cf8874f939569717a4a12826a173ac644456b"
             ],
+            "index": "pypi",
             "version": "==0.10.2"
         },
         "werkzeug": {

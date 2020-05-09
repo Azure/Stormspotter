@@ -6,7 +6,19 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
-stormspotter = {editable = true,path = "."}
+azure-cli-core = "==2.5.1"
+azure-mgmt-authorization = "==0.60.0"
+azure-mgmt-core = "==1.0.0"
+azure-mgmt-resource = "==9.0.0"
+dash = "==1.12.0"
+dash-bootstrap-components = "==0.9.2"
+dash-cytoscape = "==0.1.1"
+dash-daq = "==0.5.0"
+neo4j = "==1.7.6"
+pkginfo = "==1.5.0.1"
+shiv = "==0.1.2"
+watchdog = "==0.10.2"
+stormspotter = {path = "."}
 
 [requires]
 python_version = "3.8"
