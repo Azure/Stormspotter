@@ -11,9 +11,9 @@ with open("LICENSE", "r") as fh:
 
 setuptools.setup(
     name="stormspotter", # Replace with your own username
-    version="0.0.1",
+    version="1.0.0a",
     author="Azure Red Team",
-    description="A small example package",
+    description="Azure Red Team tool for graphing Azure and Azure Active Directory objects",
     long_description=long_description,
     long_description_content_type="text/markdown",
     license=lic,
@@ -24,7 +24,7 @@ setuptools.setup(
         "azure-mgmt-authorization==0.60.0",
         "azure-mgmt-core==1.0.0",
         "azure-mgmt-resource==9.0.0",
-        "dash==1.11.0",
+        "dash==1.12.0",
         "dash-bootstrap-components==0.9.2",
         "dash-cytoscape==0.1.1",
         "dash-daq==0.5.0",
@@ -33,17 +33,19 @@ setuptools.setup(
         "shiv==0.1.2",
         "watchdog==0.10.2"
     ],
-
+    py_modules=["Stormdash", "Stormspotter"],
     include_package_data=True,
     entry_points={
           'console_scripts': [
-              'stormspotter = stormspotter.stormspotter:main',
-              'stormdash = stormspotter.stormdash:main'
+              'stormspotter = Stormspotter:main',
+              'stormdash = Stormdash:main'
           ]
       },
     classifiers=[
-        "Programming Language :: Python :: 3",
+        "Development Status :: 3 - Alpha",
+        "Programming Language :: Python :: 3.8"
         "Operating System :: OS Independent",
+        "Framework :: Dash"
     ],
     python_requires='>=3.8',
 )

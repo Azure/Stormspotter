@@ -6,7 +6,9 @@
 
 # Stormspotter
 
-Stormspotter creates a neo4j graph view of your Azure subscription and assets as well as Azure AD tenants using public APIs. It needs reader access to the subscription you wish to import and/or Directory.Read access to the Azure AD tenants. 
+Stormspotter creates an “attack graph” of the resources in an Azure subscription. It enables red teams and pentesters to visualize the attack surface and pivot opportunities within a tenant, and supercharges your defenders to quickly orient and prioritize incident response work.  
+
+It needs reader access to the subscription you wish to import and/or Directory.Read access to the Azure AD tenants. 
 
 ---
 
@@ -22,7 +24,7 @@ docker run --name stormspotter -p7474:7474 -p7687:7687 -d --env NEO4J_AUTH=neo4j
 ```
 ---
 ## Running Stormspotter
-In order to avoid conflicting packages, it is highly recommended to run Stormspotter in a virtual environment.
+In order to avoid conflicting packages, it is highly recommended to run Stormspotter in a virtual environment. You can install `pipenv` with `python -m pip install pipenv`. 
 
 1. Install the requirements
 
@@ -35,7 +37,7 @@ In order to avoid conflicting packages, it is highly recommended to run Stormspo
     ```
     git clone https://github.com/Azure/Stormspotter
     cd Stormspotter
-    pipenv install -e .
+    pipenv install .
     ```
 
 #### Providing credentials
@@ -47,16 +49,25 @@ Current login types supported:
 #### Gather and view resources
 
 1. Run stormspotter to gather resource and object information
+   
+    - Via CLI login
     ```
     stormspotter --cli
-   ```
+    ```
 
+    - Via Service Principal
+    ```
+    stormspotter --service-principal -u <client id> -p <client secret>
+    ```
+    
 2. Run stormdash to launch dashboard
     ```
     stormdash -dbu <neo4j-user> -dbp <neo4j-pass>
     ```
 
 3. During installation, a `.stormspotter` folder is created in the user's home directory. Place the results zip file into `~/.stormspotter/input` folder. You may also place the zip file into the folder before running `stormdash` and it will be processed when Stormspotter starts. When a file is successfully processed, it will be moved into `~/.stormspotter/processed`.
+
+4. Browse to http://127.0.0.1:8050 to interact with the graph. 
    
 # Screenshots
 
