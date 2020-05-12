@@ -12,7 +12,7 @@ from dash.exceptions import PreventUpdate
 from stormspotter.dash.layout.cytoscape import NODE_LAYOUTS
 from stormspotter.dash.layout.ui import app_layout
 from stormspotter.dash.core.context import DashParser
-from stormspotter.dash.core.parsers import getNodeInfo, getEdgeInfo, checkDoubleClick
+from stormspotter.dash.core.parsers import makeDbSummary, getNodeInfo, getEdgeInfo, checkDoubleClick
 
 parser = None
 app = dash.Dash(__name__, assets_folder=Path("stormspotter/dash/assets").absolute())
@@ -20,16 +20,19 @@ app.config.suppress_callback_exceptions = True
 app.layout = app_layout(app)
 app.title = "Stormspotter"
 
-#@app.callback(Output('db-content', 'children'),
-#              [Input('db-interval', 'n_intervals')])
+@app.callback(Output('db-content', 'children'),
+              [Input('db-interval', 'n_intervals')])
 def displayDbInfo(intervals):
+    return makeDbSummary(parser.neo)
+
+@app.callback(Output('hiddendb-div', 'children'), [Input('deletedb-provider', 'submit_n_clicks')])
+def deleteDatabase(sub_clicks):
     event = dash.callback_context.triggered[0]
     if event['value'] == None:
-        return
+        raise PreventUpdate
 
-    counts = parser.dbSummary()
-    print(counts.data())
-
+    parser.neo.deleteDB()
+    return 
 
 @app.callback(Output('node-content-div', 'children'),
               [Input('cy', 'tapNodeData'), Input('cy', 'tapEdge'),
@@ -119,7 +122,8 @@ def cypher_query(cyenter, filenter, filbutton, tapNode, tapEdge, query, filvalue
     event = dash.callback_context.triggered[0]
     filtrigs = ["filter-value.n_submit", "filter-button.n_clicks"]
     if event['value'] == None:
-        raise PreventUpdate
+        return parser.getQuery(query="MATCH (n) RETURN n LIMIT 50")
+
     prop = event["prop_id"]
     if prop == "cy.tapNodeData":
         edge_ids = [edge["id"] for edge in nodedata["edgesData"]]

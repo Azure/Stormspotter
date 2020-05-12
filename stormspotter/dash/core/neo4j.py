@@ -134,7 +134,11 @@ class Neo4j:
     write_lock = threading.Lock()
 
     def dbSummary(self):
-            return self.query("MATCH (n) RETURN count(labels(n)) AS count, labels(n) AS labels", True)
+            countQuery = self.query("MATCH (n) RETURN count(labels(n)) AS count, labels(n) AS labels", True)            
+            return countQuery
+    
+    def deleteDB(self):
+        self.query("MATCH (n) DETACH DELETE n")
 
     def query(self, statement, requested=False):
         """ execute a query into the graph """
