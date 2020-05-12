@@ -4,11 +4,12 @@ import dash_core_components as dcc
 import dash_html_components as html
 import dash_daq as daq
 from .cytoscape import cyto
+from ..core.queries import PRESET_QUERIES
 
 def app_layout(app):
     return html.Div(className="container", children=[
             dcc.Store(id="local-store", storage_type="local"),
-            #dcc.Interval(id="db-interval", interval=5000, n_intervals=0),
+            dcc.Interval(id="db-interval", interval=5000, n_intervals=0),
             html.Div(className="pageDiv", children=[
             cyto]),
 
@@ -36,18 +37,14 @@ def app_layout(app):
                 value='node-data',
                 parent_className='custom-tabs', 
                 className='custom-tabs-container', children=[
-                    # dcc.Tab(label="Database", value='db-info', className='custom-tab', children=[
-                    #     html.Div(id='db-content-div', children=[
-                    #         html.Pre(id='db-content', className="dbinfocontent"),
-                    #         dcc.Upload(id='upload-data', className="upload-button",
-                    #                 children=html.Div('Upload'), 
-                    #                 style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center'}),
-                    #         #html.Button('Test', id="test-button", className="bgbutton"),    
-                    #         dcc.ConfirmDialogProvider(id='deletedb-provider', message='Are you sure you want to delete the DB?', children=[
-                    #             html.Button('Delete DB', className="bgbutton")   
-                    #     ]),
-                    #         html.Div(id="hiddendb-div")
-                    # ])]),
+                    dcc.Tab(label="Database", value='db-info', className='custom-tab', children=[
+                        html.Div(id='db-content-div', children=[
+                            html.Pre(id='db-content', className="dbinfocontent"),
+                            dcc.ConfirmDialogProvider(id='deletedb-provider', message='Are you sure you want to delete the database?', children=[
+                                html.Button('Delete DB', className="bgbutton")   
+                        ]),
+                            html.Div(id="hiddendb-div")
+                    ])]),
                     dcc.Tab(label="Node/Edge Info", value="node-data", className='custom-tab', children=[
                         html.Div(id='filter-search-div', className='filtersearch',children=[
                             html.Table(id='filter-table', className='filtertable', children=[
@@ -75,10 +72,13 @@ def app_layout(app):
                         daq.BooleanSwitch(id='raw-switch', label="Raw Data", color="#770f00",
                                           labelPosition="bottom", on=False, className="bgbutton")
                     ])]),
-                    # dcc.Tab(label="Queries", value="presets", className='custom-tab', children=[
-                    #     html.Div(id='queries-content-div', children=[
-                    #         html.Pre(id='queries-content', className="dbinfocontent")
-                    # ])]),                 
+                    dcc.Tab(label="Queries", value="presets", className='custom-tab', children=[
+                        html.Div(id='queries-content-div', children=[
+                            html.Pre(id='queries-content', className="dbinfocontent", 
+                            children=[html.Pre([html.P(k,className="rowname", style={'padding':"0", 'margin':"0"}),
+                                                html.P(v, className="rowvalue", style={'padding':"0", 'margin':"0"}),]) 
+                                                for k,v in PRESET_QUERIES.items()])
+                    ])]),                 
                 ])
             ]),
         ])

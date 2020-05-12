@@ -22,16 +22,17 @@ body{
 
 }
 
-.login-container{
+.login-modal{
     display: flex;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translateX(-50%) translateY(-50%);
-    background-color: #21273D;
+    background-color: rgb(0, 0, 0);
     color: white;
     text-align: center;
+    margin: 0;
+    padding: 0;
     z-index: 1;
+    width: 100vw;
+    height: 100vh;
+    opacity: 0.8;
 }
 
 .login-button{
@@ -191,16 +192,27 @@ textarea{
     border-top: 3px solid #e36209 !important;
 }
 
+.dbtitle {
+    text-align: center;
+    font-size: larger;
+    font-family: "Cascadia Mono";
+    padding:0;
+    margin:0;
+}
 .dbinfocontent{
     color: white;
     background-color: rgb(5, 5, 36);
     padding:0;
     margin:0;
-    height: 37%;
+    max-height: 70vh;
     width: 100%;
-    border-bottom-left-radius: 2%;
-    border-bottom-right-radius: 2%;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
     position: relative;
+    opacity: 0.9;
+    font-size: 15px;
+    overflow: none;
+
 }
 
 .nodeinfocontent{
@@ -301,9 +313,9 @@ textarea{
     color: #00bbff;
     font-family: "Cascadia Mono";
     font-weight: 600;
-    font-size: 14px;
+    font-size: 15px;
     padding: 5px;
-    width: 40%;
+    width: 35%;
     text-align: left;
     
 }
@@ -311,10 +323,10 @@ textarea{
 .rowvalue{
     color: white;
     font-family: "Cascadia Mono";
-    font-size: 14px;
+    font-size: 15px;
     padding-right: 2px;
     text-align: left;
-    width: 60%;
+    width: 65%;
     word-break: break-word;
 }
 
@@ -365,7 +377,7 @@ textarea{
 .bgbutton{
     font-family: "Cascadia Mono";
     color: white;
-    background-color:#0983af;
+    background-color:#b82500;
     border-bottom-right-radius: 2%;
     float: right;
     border-color:  rgb(5, 5, 36);

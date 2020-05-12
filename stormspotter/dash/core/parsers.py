@@ -17,6 +17,28 @@ def checkDoubleClick():
     NODE_CLICK_TIME = t
     return False
 
+def makeDbSummary(neo):
+    title = html.P("Database Stats", className="dbtitle")
+    hr = html.Hr(style={'width': "100%"})
+
+    body = []
+    body.append(html.Tr([html.Td("Database", className="rowname"), html.Td(neo.server, className="rowvalue")]))
+    body.append(html.Tr([html.Td("User", className="rowname"), html.Td(neo.user, className="rowvalue")]))
+
+    counts = neo.dbSummary().data()
+    for res in counts:
+        if len(res['labels']) > 1:
+            res['labels'].remove('AADObject') if 'AADObject' in res['labels'] else res['labels'].remove('AzureResource')
+        res["labels"] = "".join(res["labels"])
+    sortedCounts = sorted(counts, key=lambda r: r["labels"])
+
+    stats = []
+    for a,b in zip(*[iter(sortedCounts)]*2):
+        stats.append(html.Tr([html.Td(a.get("labels"), className="rowname"), 
+                             html.Td(a.get("count"), className="rowvalue"),
+                             html.Td(b.get("labels"), className="rowname"), 
+                             html.Td(b.get("count"), className="rowvalue")]))
+    return [title, dbc.Table(body), hr, dbc.Table(stats)]
 
 def getNodeInfo(node, raw):
     if raw:
