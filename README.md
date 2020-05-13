@@ -69,10 +69,17 @@ Current login types supported:
 
 4. Browse to http://127.0.0.1:8050 to interact with the graph. 
    
+
+## Notes
+- With Stormspotter currently in alpha, not all resource types have been implemented in Stormdash. You may see labels with missing icons and/or simply display the "name" and "type" fields. You can still view the data associated with these assets by clicking the "Raw Data" slider. Over time, more resources will be properly implemented.
+- The node expansion feature has not been implemented yet. This feature will allow you to interact with a node to see all of its relations. As an fallback to Stormdash, you can visit the Neo4J instance directly to use this feature.
+  
 # Screenshots
 
 ![Screenshot1](misc/screenshot1.png)
 ![Screenshot2](misc/screenshot2.png)
+![Screenshot3](misc/screenshot3.png)
+
 
 # Contributing
 
