@@ -196,14 +196,14 @@ textarea{
     text-align: center;
     font-size: larger;
     font-family: "Cascadia Mono";
-    padding:0;
-    margin:0;
+    padding:0px;
+    margin:0px;
 }
 .dbinfocontent{
     color: white;
     background-color: rgb(5, 5, 36);
-    padding:0;
-    margin:0;
+    padding:0px;
+    margin:0px;
     max-height: 70vh;
     width: 100%;
     border-bottom-left-radius: 10px;
@@ -211,8 +211,6 @@ textarea{
     position: relative;
     opacity: 0.9;
     font-size: 15px;
-    overflow: none;
-
 }
 
 .nodeinfocontent{

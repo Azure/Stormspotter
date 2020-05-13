@@ -73,7 +73,6 @@ Current login types supported:
 
 ![Screenshot1](misc/screenshot1.png)
 ![Screenshot2](misc/screenshot2.png)
-![Screenshot3](misc/screenshot3.png)
 
 # Contributing
 
