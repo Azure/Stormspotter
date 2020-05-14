@@ -3,11 +3,8 @@ import shutil
 from pathlib import Path
 from pkg_resources import resource_filename
 
-with open("README.md", "r") as fh:
+with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
-
-with open("LICENSE", "r") as fh:
-    lic = fh.read()
 
 setuptools.setup(
     name="stormspotter", # Replace with your own username
@@ -16,7 +13,6 @@ setuptools.setup(
     description="Azure Red Team tool for graphing Azure and Azure Active Directory objects",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    license=lic,
     url="https://github.com/Azure/Stormspotter",
     packages=["stormspotter"],
     install_requires = [
@@ -43,9 +39,10 @@ setuptools.setup(
       },
     classifiers=[
         "Development Status :: 3 - Alpha",
-        "Programming Language :: Python :: 3.8"
+        "Programming Language :: Python :: 3.8",
         "Operating System :: OS Independent",
-        "Framework :: Dash"
+        "Framework :: Dash",
+        "License :: OSI Approved :: MIT License"
     ],
     python_requires='>=3.8',
 )
