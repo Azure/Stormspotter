@@ -22,15 +22,16 @@ It needs reader access to the subscription you wish to import and/or Directory.R
 ```
 docker run --name stormspotter -p7474:7474 -p7687:7687 -d --env NEO4J_AUTH=neo4j/[password] neo4j:latest
 ```
----
+
 ## Running Stormspotter
-In order to avoid conflicting packages, it is highly recommended to run Stormspotter in a virtual environment. You can install `pipenv` with `python -m pip install pipenv`. 
+In order to avoid conflicting packages, it is highly recommended to run Stormspotter in a virtual environment. 
 
 1. Install the requirements
 
-    - Via pip
+    - Via pipenv
     ```
-    pipenv install stormspotter
+    python -m pip install pipenv
+    pipenv install stormspotter==1.0.0a0
     ```
 
     - From the repository   
