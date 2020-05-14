@@ -17,10 +17,10 @@ It needs reader access to the subscription you wish to import and/or Directory.R
 ### Prerequisites
 
 - Stormspotter is developed in Python 3.8.
-- Install [Neo4j](https://neo4j.com/download/). Installation directions for your preferred operating system are located [here](https://neo4j.com/docs/operations-manual/current/installation/), although you may prefer the ease of a docker container:
+- Install [Neo4j](https://neo4j.com/download/). Currently, neo4j 4.0 is not supported so please grab the latest 3.5 version. Installation directions for your preferred operating system are located [here](https://neo4j.com/docs/operations-manual/current/installation/), although you may prefer the ease of a docker container:
 
 ```
-docker run --name stormspotter -p7474:7474 -p7687:7687 -d --env NEO4J_AUTH=neo4j/[password] neo4j:latest
+docker run --name stormspotter -p7474:7474 -p7687:7687 -d --env NEO4J_AUTH=neo4j/[password] neo4j:3.5.18
 ```
 
 ## Running Stormspotter
