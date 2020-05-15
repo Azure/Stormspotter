@@ -110,3 +110,4 @@ ingestor.*
 stub.exe
 test_*
 .vscode/
+.DS_Store
