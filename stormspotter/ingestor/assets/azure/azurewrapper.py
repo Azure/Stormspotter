@@ -34,8 +34,7 @@ def _query_subscription(context, sub_id):
     return resources
 
 def query_azure_subscriptions(context, sub_list=None):
-    if not sub_list:
-        sub_list = get_sub_list(context)
+    sub_list = get_sub_list(context, sub_list)
 
     rbac_list = []
     cert_list = []    
@@ -56,7 +55,7 @@ def query_azure_subscriptions(context, sub_list=None):
     Recorder.writestr("rbac.json", json.dumps(rbac_list, sort_keys=True))
     Recorder.writestr("certs.json", json.dumps(cert_list, sort_keys=True))
 
-def get_sub_list(context):
+def get_sub_list(context, sub_list=None):
     sub_client = SubscriptionClient(context.auth.resource_cred)
     tens = [ten for ten in sub_client.tenants.list()]
     ten_asset = {
@@ -69,6 +68,8 @@ def get_sub_list(context):
         "subscriptions": []
     }
     subs = [sub for sub in sub_client.subscriptions.list()]
+    if sub_list:
+        subs = filter(lambda s: s.subscription_id in sub_list_filter, subs)
     sub_ids = [sub.subscription_id for sub in subs]
     for sub in subs:
         client = ResourceManagementClient(context.auth.resource_cred, sub.subscription_id)
