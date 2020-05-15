@@ -9,15 +9,18 @@ from stormspotter.ingestor.assets.azure import rbac
 from stormspotter.ingestor.utils import Recorder
 from stormspotter.ingestor.utils.resources import *
 
-def _query_resource(asset_id, context, api_version="2018-02-14"):
+def _query_resource(asset_id, context, api_version="2018-02-14", version_blacklist=[]):
     try:
         return context.client.resources.get_by_id(asset_id, api_version, raw=True).response.json()
     except CloudError as ex:
         if "No registered resource provider found for location" in ex.message:
-            api_version = re.search(
+            version_blacklist.append(api_version)
+            api_versions = re.search(
                 "The supported api-versions are '(.*?),", ex.message
             ).groups()
-            return _query_resource(asset_id, context, api_version=api_version[0])
+            api_versions = list(filter(lambda v: v not in version_blacklist, api_versions))
+            if api_versions:
+                return _query_resource(asset_id, context, api_version=api_versions[0], version_blacklist=version_blacklist)
 
 def _query_subscription(context, sub_id):
     resources = [sub_id]
