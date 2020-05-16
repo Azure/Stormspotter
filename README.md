@@ -28,17 +28,17 @@ In order to avoid conflicting packages, it is highly recommended to run Stormspo
 
 1. Install the requirements
 
-    - Via pipenv
-    ```
-    python -m pip install pipenv
-    pipenv install stormspotter==1.0.0a0
-    ```
-
-    - From the repository   
+    - From the repository (**RECOMMENDED**)
     ```
     git clone https://github.com/Azure/Stormspotter
     cd Stormspotter
     pipenv install .
+    ```
+
+    - Via pipenv
+    ```
+    python -m pip install pipenv
+    pipenv install stormspotter==1.0.0a0
     ```
 
 #### Providing credentials
