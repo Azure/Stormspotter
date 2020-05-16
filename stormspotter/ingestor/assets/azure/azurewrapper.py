@@ -9,15 +9,18 @@ from stormspotter.ingestor.assets.azure import rbac
 from stormspotter.ingestor.utils import Recorder
 from stormspotter.ingestor.utils.resources import *
 
-def _query_resource(asset_id, context, api_version="2018-02-14"):
+def _query_resource(asset_id, context, api_version="2018-02-14", version_blacklist=[]):
     try:
         return context.client.resources.get_by_id(asset_id, api_version, raw=True).response.json()
     except CloudError as ex:
         if "No registered resource provider found for location" in ex.message:
-            api_version = re.search(
+            version_blacklist.append(api_version)
+            api_versions = re.search(
                 "The supported api-versions are '(.*?),", ex.message
             ).groups()
-            return _query_resource(asset_id, context, api_version=api_version[0])
+            api_versions = list(filter(lambda v: v not in version_blacklist, api_versions))
+            if api_versions:
+                return _query_resource(asset_id, context, api_version=api_versions[0], version_blacklist=version_blacklist)
 
 def _query_subscription(context, sub_id):
     resources = [sub_id]
@@ -31,8 +34,7 @@ def _query_subscription(context, sub_id):
     return resources
 
 def query_azure_subscriptions(context, sub_list=None):
-    if not sub_list:
-        sub_list = get_sub_list(context)
+    sub_list = get_sub_list(context, sub_list)
 
     rbac_list = []
     cert_list = []    
@@ -53,7 +55,7 @@ def query_azure_subscriptions(context, sub_list=None):
     Recorder.writestr("rbac.json", json.dumps(rbac_list, sort_keys=True))
     Recorder.writestr("certs.json", json.dumps(cert_list, sort_keys=True))
 
-def get_sub_list(context):
+def get_sub_list(context, sub_list=None):
     sub_client = SubscriptionClient(context.auth.resource_cred)
     tens = [ten for ten in sub_client.tenants.list()]
     ten_asset = {
@@ -66,6 +68,8 @@ def get_sub_list(context):
         "subscriptions": []
     }
     subs = [sub for sub in sub_client.subscriptions.list()]
+    if sub_list:
+        subs = filter(lambda s: s.subscription_id in sub_list_filter, subs)
     sub_ids = [sub.subscription_id for sub in subs]
     for sub in subs:
         client = ResourceManagementClient(context.auth.resource_cred, sub.subscription_id)
