@@ -11,7 +11,7 @@ class Authentication():
     tenant_id = None
     subscriptions = []
 
-    def __init__(self, cli, serviceprincpal, appid=None, password=None, tenant=None):
+    def __init__(self, cli, serviceprincipal, appid=None, password=None, tenant=None):
         from stormspotter.collector.utils import SSC as context
 
         GRAPH_RESOURCE = context.cloudContext.cloud.endpoints.active_directory_graph_resource_id
@@ -20,7 +20,7 @@ class Authentication():
         if cli:
             self.resource_cred = self.authenticate_from_cli(ARM_RESOURCE)
             self.aad_cred = self.authenticate_from_cli(GRAPH_RESOURCE)
-        elif serviceprincpal and appid and password and tenant:
+        elif serviceprincipal and appid and password and tenant:
             self.tenant_id = tenant
             self.resource_cred = self.get_spn_credentials(
                 appid, password, tenant, ARM_RESOURCE)
