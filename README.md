@@ -58,7 +58,7 @@ Current login types supported:
 
     - Via Service Principal
     ```
-    stormspotter --service-principal -u <client id> -p <client secret>
+    stormspotter --service-principal -u <client id> -p <client secret> -t <tenant id>
     ```
     
 2. Run stormdash to launch dashboard
