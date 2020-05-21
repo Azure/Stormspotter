@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List
 from msrestazure.azure_cloud import AZURE_PUBLIC_CLOUD
-from stormspotter.ingestor.utils.resources import *
+from stormspotter.collector.utils.resources import *
 
 @dataclass
 class AADObject():

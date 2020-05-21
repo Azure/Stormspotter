@@ -10,10 +10,10 @@ We encourage the community to work with us to help improve the functionality of 
 Stormspotter is reimagining of a tool created internally in 2018. As such, there are many improvements to be made. Here are some immediate focuses:
 
 ### Core
-- Refactor code that is shared between ingestor and dashboard
+- Refactor code that is shared between collector and dashboard
 
-### Ingestor
-- Rewrite the ingestor with `async` as opposed to current threading implementation. Testing against downloading 300k+ Service Principals took about an hour.
+### collector
+- Rewrite the collector with `async` as opposed to current threading implementation. Testing against downloading 300k+ Service Principals took about an hour.
 - Consider sqlite implementation vs current zipfile implementation for outputting data.
   
 ### Dashboard

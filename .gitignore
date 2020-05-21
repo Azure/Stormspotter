@@ -105,7 +105,7 @@ results*.zip
 
 # others
 app/
-ingestor.*
+collector.*
 *.pem
 stub.exe
 test_*

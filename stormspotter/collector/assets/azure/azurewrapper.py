@@ -5,9 +5,9 @@ from concurrent.futures import ThreadPoolExecutor, wait, as_completed
 from azure.mgmt.resource import ResourceManagementClient
 from azure.mgmt.resource.subscriptions import SubscriptionClient
 from msrestazure.azure_exceptions import CloudError
-from stormspotter.ingestor.assets.azure import rbac
-from stormspotter.ingestor.utils import Recorder
-from stormspotter.ingestor.utils.resources import *
+from stormspotter.collector.assets.azure import rbac
+from stormspotter.collector.utils import Recorder
+from stormspotter.collector.utils.resources import *
 
 def _query_resource(asset_id, context, api_version="2018-02-14", version_blacklist=[]):
     try:
