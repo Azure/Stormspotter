@@ -12,7 +12,7 @@ class Authentication():
     subscriptions = []
 
     def __init__(self, cli, serviceprincpal, appid=None, password=None, tenant=None):
-        from stormspotter.ingestor.utils import SSC as context
+        from stormspotter.collector.utils import SSC as context
 
         GRAPH_RESOURCE = context.cloudContext.cloud.endpoints.active_directory_graph_resource_id
         ARM_RESOURCE = context.cloudContext.cloud.endpoints.active_directory_resource_id

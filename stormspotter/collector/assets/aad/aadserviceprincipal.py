@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List
 from .aadobject import AADObject
-from stormspotter.ingestor.utils.resources import *
+from stormspotter.collector.utils.resources import *
 
 @dataclass
 class AADServicePrincipal(AADObject):

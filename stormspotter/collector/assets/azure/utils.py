@@ -1,6 +1,6 @@
 import re
 from msrestazure.azure_exceptions import CloudError
-from stormspotter.ingestor.utils import SSC as context
+from stormspotter.collector.utils import SSC as context
 
 
 

@@ -2,8 +2,8 @@ import requests
 import re
 import xml
 from azure.mgmt.authorization import AuthorizationManagementClient
-from stormspotter.ingestor.utils.resources import *
-from stormspotter.ingestor.utils import SSC as context
+from stormspotter.collector.utils.resources import *
+from stormspotter.collector.utils import SSC as context
 
 
 ROLE_MAPPINGS = [

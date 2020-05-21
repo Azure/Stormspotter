@@ -6,10 +6,10 @@ import time
 import json
 from itertools import chain
 from concurrent.futures import ThreadPoolExecutor, wait, as_completed
-from stormspotter.ingestor.utils import Recorder, SSC as context
-from stormspotter.ingestor.utils import Authentication, CloudContext
-from stormspotter.ingestor.assets.aad import aadwrapper
-from stormspotter.ingestor.assets.azure import azurewrapper
+from stormspotter.collector.utils import Recorder, SSC as context
+from stormspotter.collector.utils import Authentication, CloudContext
+from stormspotter.collector.assets.aad import aadwrapper
+from stormspotter.collector.assets.azure import azurewrapper
 
 def main():
     parser = argparse.ArgumentParser(description='Stormspotter')

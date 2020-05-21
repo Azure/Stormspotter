@@ -1,6 +1,6 @@
 import json
-from stormspotter.ingestor.utils import Recorder
-from stormspotter.ingestor.assets.aad import AADObject, AADUser
+from stormspotter.collector.utils import Recorder
+from stormspotter.collector.assets.aad import AADObject, AADUser
 from concurrent.futures import ThreadPoolExecutor, wait, as_completed
 
 
