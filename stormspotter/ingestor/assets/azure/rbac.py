@@ -102,7 +102,7 @@ def get_rbac_permissions(context, sub_id):
         rbacs += (_map_admin_type(sub_id, assignment_id, principal, scope, role_id,
                         role_type, permissions))
     
-    print(f"Finished management certs for subscription: {sub_id}")
+    print(f"Finished rbac permissions for subscription: {sub_id}")
     return rbacs
 
 def get_management_certs(context, sub_id):
