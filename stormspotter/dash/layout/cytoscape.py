@@ -4,33 +4,7 @@ import dash_bootstrap_components as dbc
 import dash_html_components as html
 import dash_core_components as dcc
 import dash_cytoscape as dcy
-
-def getNodeImages():
-    return [
-        ["AADApplication", "url(../assets/images/aadapp.png)"],
-        ["AADGroup", "url(../assets/images/aadgroup.png)"],
-        ["AADServicePrincipal", "url(../assets/images/aadsp.png)"],
-        ["AADUser",  "url(../assets/images/aaduser.png)"],
-        ["Disk", "url(../assets/images/disks.png)"],
-        ["GenericAsset", "url(../assets/images/generic.png)"],
-        ["IpConfiguration", "url(../assets/images/ipconf.png)"],
-        ["KeyVault", "url(../assets/images/kv.png)"],
-        ["LoadBalancer", "url(../assets/images/loadb.png)"],
-        ["NetworkInterface", "url(../assets/images/nic.png)"],
-        ["NetworkSecurityGroup", "url(../assets/images/nsg.png)"],
-        ["PublicIp", "url(../assets/images/ip.png)"],
-        ["ResourceGroup", "url(../assets/images/rg.png)"],
-        ["Rule", "url(../assets/images/rule.png)"],
-        ["ServiceFabric", "url(../assets/images/sf.png)"],
-        ["SQLDatabase", "url(../assets/images/sqldb.png)"],
-        ["SQLServer", "url(../assets/images/sqlserver.png)"],
-        ["StorageAccount", "url(../assets/images/storage.png)"],
-        ["Subscription", "url(../assets/images/sub.png)"],
-        ["Tenant", "url(../assets/images/tenant.png)"],
-        ["VirtualMachine", "url(../assets/images/vm.png)"],
-        ["VirtualNetwork", "url(../assets/images/vnet.png)"],
-        ["WebSite", "url(../assets/images/appservice.png)"],
-    ]
+from .labels import NODE_LABELS
 
 klay = {'name':"klay",
             "nodeDimensionsIncludeLabels": True,
@@ -90,6 +64,7 @@ cyto = dcy.Cytoscape(
             'background-opacity': 0,
             'overlay-color': "white",
             'font-family': "Cascadia Mono",
+            'background-image': "url(../assets/images/generic.png)"
         }
     }, 
     {
@@ -118,7 +93,7 @@ cyto = dcy.Cytoscape(
         'style': {
             'background-image': f"{url}",
         }
-    } for nodetype, url in getNodeImages()] +
+    } for nodetype, url in NODE_LABELS] +
     [{
         'selector': ':selected',
         "style": {

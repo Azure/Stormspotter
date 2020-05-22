@@ -169,7 +169,7 @@ def main():
     args = argparser.parse_args()
     # parser = DashParser("neo4j", "password")
     parser = DashParser(args.dbuser, args.dbpass, args.db)
-    app.run_server(debug=False, threaded=True)
+    app.run_server(debug=True, threaded=True)
 
 if __name__ == "__main__":
     main()
