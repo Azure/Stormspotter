@@ -12,4 +12,4 @@ def query_aadobjects(context):
         try:
             Recorder.writestr(f"{f.result()[0]}.json", json.dumps(f.result()[1:], sort_keys=True))
         except Exception as e:
-            print(e)
+            print(e or f"ERROR: {f.exception()}")

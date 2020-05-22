@@ -126,10 +126,7 @@ def get_management_certs(context, sub_id):
             cert_list += cert_asset
     
     except Exception:
-        print (f"user or service principal does not have coadministrator access to subscription {sub_id} to access management certs.")
+        print (f"INFO: Credential does not have coadministrator access to subscription {sub_id} to access management certs.")
 
     print(f"Finished management certs for subscription: {sub_id}")
     return cert_list
-    #for cert in cert_list:
-        #context.neo4j.insert_asset(cert, CERTIFICATE_NODE_LABEL, cert["thumbprint"])
-        #context.neo4j.create_relationship(cert["thumbprint"], CERTIFICATE_NODE_LABEL, sub_id, SUBSCRIPTION_NODE_LABEL, CERT_TO_ASSET)

@@ -45,7 +45,10 @@ def query_azure_subscriptions(context, sub_list=None):
                          ))
 
     for f in as_completed(futures):
-        if f.result()[0] == "rbac":
+        if f.exception():
+            print(f"ERROR: {f.exception()}")
+        
+        elif f.result()[0] == "rbac":
             rbac_list += f.result()[1:]
         elif f.result()[0] == "certs":
             cert_list += f.result()[1:]
@@ -79,10 +82,10 @@ def get_sub_list(context, sub_list=None):
             "state": sub.state.value,
             "id": sub.id,
             "subscriptionId": sub.subscription_id,
-            "managedBy": sub.managed_by_tenants,
-            "tags": [[k,v] for k,v in sub.tags.items()] if isinstance(sub.tags, dict) else None,
+            "managedBy": [tenant.tenant_id for tenant in sub.managed_by_tenants] or "",
+            "tags": [[k,v] for k,v in sub.tags.items()] if isinstance(sub.tags, dict) else [],
             "resourceGroups": [{"id": rg.id, "name": rg.name, "location": rg.location, 
-                                "type": rg.type, "managedBy": rg.managed_by, 
+                                "type": rg.type, "managedBy": rg.managed_by or "", 
                                 "tags": [[k,v] for k,v in sub.tags.items()] if isinstance(sub.tags, dict) else None} 
                               for rg in resource_groups]
         }
