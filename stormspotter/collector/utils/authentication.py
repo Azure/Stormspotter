@@ -1,6 +1,9 @@
 """Handles authentication to Graph and Azure resources"""
 from azure.common.credentials import ServicePrincipalCredentials
 
+class AuthenticationError(Exception):
+    pass
+
 class Authentication():
     """
     Allows user to authenticate using a service prinicpal or their identity
@@ -20,12 +23,17 @@ class Authentication():
         if cli:
             self.resource_cred = self.authenticate_from_cli(ARM_RESOURCE)
             self.aad_cred = self.authenticate_from_cli(GRAPH_RESOURCE)
-        elif serviceprincipal and appid and password and tenant:
-            self.tenant_id = tenant
-            self.resource_cred = self.get_spn_credentials(
-                appid, password, tenant, ARM_RESOURCE)
-            self.aad_cred = self.get_spn_credentials(
-                appid, password, tenant, GRAPH_RESOURCE)
+        elif serviceprincipal:
+            if appid and password and tenant:
+                self.tenant_id = tenant
+                self.resource_cred = self.get_spn_credentials(
+                    appid, password, tenant, ARM_RESOURCE)
+                self.aad_cred = self.get_spn_credentials(
+                    appid, password, tenant, GRAPH_RESOURCE)
+            else:
+                raise AuthenticationError("You must provide --username, --password, and --tenant to use a Service Principal!")
+        else:
+            raise AuthenticationError("You must provide valid credential arguments!")
 
     def authenticate_from_cli(self, resource):
         """
