@@ -232,6 +232,7 @@ textarea{
 
 .nodeinfocontent .table{
     border-collapse: collapse;
+    width: 100%;
 }
 
 
@@ -324,7 +325,7 @@ textarea{
     font-size: 15px;
     padding-right: 2px;
     text-align: left;
-    width: 65%;
+    width: 70%;
     word-break: break-word;
 }
 

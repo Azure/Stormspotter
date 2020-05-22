@@ -60,7 +60,7 @@ class Authentication():
         """
         Return the ServicePrincipalCredentials
         """
-        print("Attemprint to get CLI Credentials from a Service Principal")
+        print("Attempting to get CLI Credentials from a Service Principal")
         return ServicePrincipalCredentials(
             client_id=appid,
             secret=password,
