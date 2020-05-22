@@ -27,12 +27,17 @@ def main():
 
     args = parser.parse_args()
     context.cloudContext = CloudContext(args.cloud, args.config_file)
-    context.auth = Authentication(
-        args.cli,
-        args.service_principal,
-        args.username,
-        args.password,
-        args.tenant)
+
+    try:
+        context.auth = Authentication(
+            args.cli,
+            args.service_principal,
+            args.username,
+            args.password,
+            args.tenant)
+    except Exception as e:
+        print(e)
+        exit()
 
     start = time.time()
 
