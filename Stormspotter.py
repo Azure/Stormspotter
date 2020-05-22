@@ -53,10 +53,8 @@ def main():
                          ))
 
             for f in as_completed(futures):
-                try:
-                    print(f.result())
-                except:
-                    print(f"ERROR: {f.exception()}")
+                if error := f.exception():
+                    print(f"ERROR: {error}")
 
     end = time.time()
     print(f"Completion Time: {end-start}")
