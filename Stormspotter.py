@@ -15,7 +15,7 @@ def main():
     parser = argparse.ArgumentParser(description='Stormspotter')
     group = parser.add_mutually_exclusive_group()
     parser.add_argument("--service-principal", help='Use a service principal to authenticate', action="store_true")
-    parser.add_argument("--tenant", help='Tenant Id for Service Principal Auth')
+    parser.add_argument("--tenant", "-t", help='Tenant Id for Service Principal Auth')
     parser.add_argument("--password", "-p", help='Credentials like user password, or for a service principal. Will prompt if not given.')
     parser.add_argument("--username", "-u", help='User name, service principal,')
     parser.add_argument("--cli", help='Use a service principal to authenticate', action="store_true")
