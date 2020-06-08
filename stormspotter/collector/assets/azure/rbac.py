@@ -86,8 +86,8 @@ def _get_permissions(cred, role_id):
 
 def get_rbac_permissions(context, sub_id):
     print(f"Getting rbac permissions for subscription: {sub_id}")
-    auth_client = AuthorizationManagementClient(
-        context.auth.resource_cred, sub_id)
+    auth_client = AuthorizationManagementClient(context.auth.resource_cred, sub_id, 
+                                                base_url=context.cloudContext.cloud.endpoints.resource_manager)
     rbacs = ["rbac"]
 
     for role in auth_client.role_assignments.list():

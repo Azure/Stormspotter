@@ -25,7 +25,8 @@ def _query_resource(asset_id, context, api_version="2018-02-14", version_blackli
 def _query_subscription(context, sub_id):
     resources = [sub_id]
     print(f"Querying for resources in subscription id {sub_id}")
-    client = ResourceManagementClient(context.auth.resource_cred, sub_id)
+    client = ResourceManagementClient(context.auth.resource_cred, sub_id,
+                                      base_url=context.cloudContext.cloud.endpoints.resource_manager)
     context.client = client
     for item in client.resources.list():
         type_name = item.type.lower()
@@ -59,7 +60,8 @@ def query_azure_subscriptions(context, sub_list=None):
     Recorder.writestr("certs.json", json.dumps(cert_list, sort_keys=True))
 
 def get_sub_list(context, sub_list=None):
-    sub_client = SubscriptionClient(context.auth.resource_cred)
+    sub_client = SubscriptionClient(context.auth.resource_cred, 
+                                    base_url=context.cloudContext.cloud.endpoints.resource_manager)
     tens = [ten for ten in sub_client.tenants.list()]
     ten_asset = {
         "tenantId": tens[0].tenant_id,
@@ -75,7 +77,8 @@ def get_sub_list(context, sub_list=None):
         subs = filter(lambda s: s.subscription_id in sub_list_filter, subs)
     sub_ids = [sub.subscription_id for sub in subs]
     for sub in subs:
-        client = ResourceManagementClient(context.auth.resource_cred, sub.subscription_id)
+        client = ResourceManagementClient(context.auth.resource_cred, sub.subscription_id,
+                                          base_url=context.cloudContext.cloud.endpoints.resource_manager)
         resource_groups = [rg for rg in client.resource_groups.list()]
         sub_asset = {
             "name": sub.display_name,
