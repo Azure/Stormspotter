@@ -316,7 +316,7 @@ class DashParser:
         obj["name"] = vm["name"]
         obj["type"] = VIRTUALMACHINE_NODE_LABEL
         if vm["properties"].get("availabilitySet"):
-            vmas_id = vm["availabilitySet"]["id"]
+            vmas_id = vm["properties"]["availabilitySet"]["id"]
             vmas_name = vmas_id.split("/")[-1]
             vmas_asset = {"id": vmas_id, "name": vmas_name}
             self.neo.insert_asset(vmas_asset, AVAILABILITYSET_NODE_LABEL, vmas_id, [GENERIC_NODE_LABEL])
