@@ -33,7 +33,7 @@ class DashParser:
         src = Path(event.src_path)
         if zipfile.is_zipfile(src):
             self.parseInputFile(src)
-            os.rename(src, f"{self.processed_path}\\{src.stem}_{time.strftime('%Y%m%d-%H%M%S')}.zip")
+            os.rename(src,os.path.join(self.processed_path,'{}_{}.zip'.format(src.stem,time.strftime('%Y%m%d-%H%M%S'))))
 
     def processExistingFiles(self):        
         for file in self.data_path.iterdir():
@@ -443,4 +443,3 @@ class DashParser:
                 data["classes"] = ""
                 elements.append(data)
         return [v for idx, v in enumerate(elements) if v not in elements[idx+1:]]  
-        

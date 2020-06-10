@@ -74,7 +74,7 @@ def get_sub_list(context, sub_list=None):
     }
     subs = [sub for sub in sub_client.subscriptions.list()]
     if sub_list:
-        subs = filter(lambda s: s.subscription_id in sub_list_filter, subs)
+        subs = filter(lambda s: s.subscription_id in sub_list, subs)
     sub_ids = [sub.subscription_id for sub in subs]
     for sub in subs:
         client = ResourceManagementClient(context.auth.resource_cred, sub.subscription_id,

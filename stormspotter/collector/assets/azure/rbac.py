@@ -76,6 +76,8 @@ def _get_permissions(cred, role_id):
     url = ARM_ENDPOINT + role_id + '?api-version=2018-01-01-preview'
     session = cred.signed_session()
     headers = session.headers
+    if not headers.get('Authorization'):
+         headers['Authorization'] = '{} {}'.format(cred.scheme,cred.token['access_token'])
     r = requests.get(url, headers=headers)
     roles_json = r.json()
     if (roles_json):
