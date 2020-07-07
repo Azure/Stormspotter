@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import dash
 import json
 import time
