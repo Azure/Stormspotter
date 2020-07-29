@@ -12,6 +12,10 @@ from stormcollector import OUTPUT_FOLDER
 
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+else:
+    import uvloop
+
+    uvloop.install()
 
 
 async def main(args: argparse.Namespace):
@@ -28,6 +32,7 @@ async def main(args: argparse.Namespace):
         tasks.append(query_arm(context, args))
 
     await asyncio.wait(tasks)
+    await context.cred.close()
 
 
 if __name__ == "__main__":
