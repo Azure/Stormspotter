@@ -2,7 +2,6 @@ import argparse
 import asyncio
 import sys
 import time
-from uuid import UUID
 from loguru import logger
 from stormcollector.auth import Context
 from stormcollector.aad import query_aad
@@ -65,7 +64,6 @@ if __name__ == "__main__":
     parentParser.add_argument(
         "--subs",
         nargs="+",
-        type=UUID,
         help="Subscription you wish to scan. Multiple subscriptions can be added as a space deliminated list -s subid1 subid2",
     )
 
@@ -78,7 +76,7 @@ if __name__ == "__main__":
     # SPN AUTH #
     spnParser = authParser.add_parser("spn", parents=[parentParser])
     spnParser.add_argument(
-        "--clientid", "-c", metavar="", type=UUID, required=True, help="Client ID"
+        "--clientid", "-c", metavar="", required=True, help="Client ID"
     )
     spnParser.add_argument(
         "--secret", "-s", metavar="", required=True, help="Client Secret"
