@@ -59,7 +59,7 @@ class Context:
     ) -> AzureCliCredential:
         """Get credentials using CLI Credentials"""
         try:
-            logger.info(f"Authenticating to {cloud['AD']} ")
+            logger.info(f"Authenticating to {cloud['AD']} with CLI credentials.")
             return AzureCliCredential()
 
         except Exception as e:
@@ -68,15 +68,15 @@ class Context:
 
     @staticmethod
     def _get_resource_creds_from_spn(
-        resource: dict, args: Namespace
+        cloud: dict, args: Namespace
     ) -> ClientSecretCredential:
         """Get credentials using Service Principal Credentials"""
         try:
-            return ServicePrincipalCredentials(
-                client_id=args.clientid,
-                secret=args.secret,
-                resource=resource,
-                tenant=args.tenantid,
+            logger.info(
+                f"Authenticating to {cloud['AD']} with Service Principal credentials."
+            )
+            return ClientSecretCredential(
+                args.tenantid, args.clientid, args.secret, authority=cloud["AD"]
             )
         except Exception as e:
             logger.warning(e)

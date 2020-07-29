@@ -102,7 +102,6 @@ class AADGroup(AADObject):
         return value
 
 
-@logger.catch()
 async def query_aad(ctx: Context, args: argparse.Namespace):
     logger.info(f"Starting enumeration for Azure AD: {ctx.cloud['AAD']}")
     aad_types = AADObject.__subclasses__()
