@@ -13,6 +13,7 @@ msal_extensions = "^0.2.2"
 portalocker = "^1.7.1"
 azure-common = "^1.1.25"
 azure-mgmt-resource = "15.0.0b1"
+azure-mgmt-authorization = "^0.60.0"
 azure-identity = "1.4.0b7"
 uvloop = {version = "^0.14.0", platform = "linux"}
 
@@ -21,6 +22,7 @@ uvloop = {version = "^0.14.0", platform = "linux"}
 pytest = "^5.2"
 isort = "^5.2.0"
 black = "^19.10b0"
+shiv = "^0.1.3"
 
 [build-system]
 requires = ["poetry>=0.12"]
