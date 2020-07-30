@@ -1,13 +1,15 @@
 import argparse
 import asyncio
+import shutil
 import sys
 import time
+
 from loguru import logger
-from stormcollector.auth import Context
-from stormcollector.aad import query_aad
-from stormcollector.arm import query_arm
 
 from stormcollector import OUTPUT_FOLDER
+from stormcollector.aad import query_aad
+from stormcollector.arm import query_arm
+from stormcollector.auth import Context
 
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
@@ -17,7 +19,7 @@ else:
     uvloop.install()
 
 
-async def main(args: argparse.Namespace):
+async def run(args: argparse.Namespace):
     context = await args.get_creds(args)
 
     tasks = []
@@ -31,11 +33,10 @@ async def main(args: argparse.Namespace):
         tasks.append(query_arm(context, args))
 
     await asyncio.wait(tasks)
-    await context.cred.close()
+    await context.cred_async.close()
 
 
-if __name__ == "__main__":
-
+def main():
     parentParser = argparse.ArgumentParser(description="Stormcollector", add_help=False)
 
     configGroup = parentParser.add_mutually_exclusive_group()
@@ -47,10 +48,6 @@ if __name__ == "__main__":
     )
     configGroup.add_argument(
         "--config", type=argparse.FileType("r"), help="Custom cloud instance"
-    )
-
-    parentParser.add_argument(
-        "--tenantid", "-t", metavar="", required=True, help="Tenant ID",
     )
 
     resourceGroup = parentParser.add_mutually_exclusive_group()
@@ -81,6 +78,9 @@ if __name__ == "__main__":
     spnParser.add_argument(
         "--secret", "-s", metavar="", required=True, help="Client Secret"
     )
+    spnParser.add_argument(
+        "--tenantid", "-t", metavar="", required=True, help="Tenant ID",
+    )
 
     spnParser.set_defaults(get_creds=Context.auth)
 
@@ -88,7 +88,15 @@ if __name__ == "__main__":
     if hasattr(args, "get_creds"):
         start_time = time.time()
 
-        asyncio.run(main(args))
-        logger.info(f"--- COMPLETE: {time.time() - start_time} seconds ---")
+        asyncio.run(run(args))
+        shutil.make_archive(OUTPUT_FOLDER, "zip", OUTPUT_FOLDER)
+        logger.info(
+            f"--- COMPLETE: {time.time() - start_time} seconds. OUTPUT FOLDER: {OUTPUT_FOLDER.absolute()}.zip ---"
+        )
+        shutil.rmtree(OUTPUT_FOLDER)
     else:
         parser.print_help()
+
+
+if __name__ == "__main__":
+    main()

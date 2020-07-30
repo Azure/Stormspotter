@@ -1,43 +1,51 @@
 import configparser
-from loguru import logger
 from argparse import Namespace
-from typing import IO, Any, Union
+from typing import IO, Any, Tuple
 
-from azure.identity import KnownAuthorities
-from azure.identity.aio import AzureCliCredential, ClientSecretCredential
+import azure.identity as identity
+import azure.identity.aio as identity_aio
+from loguru import logger
+
+from .adapter import AzureIdentityCredentialAdapter
 
 CLOUD_MAP = {
     "PUBLIC": {
-        "AD": KnownAuthorities.AZURE_PUBLIC_CLOUD,
+        "AD": identity.KnownAuthorities.AZURE_PUBLIC_CLOUD,
         "AAD": "https://graph.windows.net",
         "ARM": "https://management.azure.com",
+        "GRAPH": "https://graph.microsoft.com",
+        "MGMT": "https://management.core.windows.net",
     },
     "GERMAN": {
-        "AD": KnownAuthorities.AZURE_GERMANY,
+        "AD": identity.KnownAuthorities.AZURE_GERMANY,
         "AAD": "https://graph.cloudapi.de",
         "ARM": "https://management.microsoftazure.de",
+        "GRAPH": "https://graph.microsoft.de",
+        "MGMT": "https://management.core.cloudapi.de",
     },
     "CHINA": {
-        "AD": KnownAuthorities.AZURE_PUBLIC_CLOUD,
+        "AD": identity.KnownAuthorities.AZURE_PUBLIC_CLOUD,
         "AAD": "https://graph.chinacloudapi.cn",
         "ARM": "https://management.chinacloudapi.cn",
+        "GRAPH": "https://microsoftgraph.chinacloudapi.cn",
+        "MGMT": "https://management.core.chinacloudapi.cn",
     },
     "USGOV": {
-        "AD": KnownAuthorities.AZURE_PUBLIC_CLOUD,
+        "AD": identity.KnownAuthorities.AZURE_PUBLIC_CLOUD,
         "AAD": "https://graph.windows.net",
         "ARM": "https://management.usgovcloudapi.net",
+        "GRAPH": "https://graph.microsoft.us/",
+        "MGMT": "https://management.core.usgovcloudapi.net",
     },
 }
 
 
 class Context:
     def __init__(
-        self,
-        cloud: dict,
-        authenticatedCred: Union[AzureCliCredential, ClientSecretCredential],
+        self, cloud: dict, authenticatedCreds: Tuple[Any],
     ):
         self.cloud = cloud
-        self.cred = authenticatedCred
+        self.cred_sync, self.cred_async, self.cred_msrest = authenticatedCreds
 
     @staticmethod
     def _get_auth_cloud(cloud: str, config: IO[Any] = None) -> str:
@@ -50,17 +58,21 @@ class Context:
             custom["ARM"] = cfg["ENDPOINTS"]["Resource_Manager"]
             custom["AD"] = cfg["ENDPOINTS"]["AD"]
             custom["AAD"] = cfg["ENDPOINTS"]["AD_Graph_ResourceId"]
+            custom["GRAPH"] = cfg["ENDPOINTS"]["MS_Graph"]
             return custom
         return CLOUD_MAP[cloud]
 
     @staticmethod
     def _get_resource_creds_from_cli(
         cloud: dict, args: Namespace
-    ) -> AzureCliCredential:
+    ) -> Tuple[identity.AzureCliCredential, identity_aio.AzureCliCredential]:
         """Get credentials using CLI Credentials"""
         try:
             logger.info(f"Authenticating to {cloud['AD']} with CLI credentials.")
-            return AzureCliCredential()
+            return [
+                identity.AzureCliCredential(),
+                identity_aio.AzureCliCredential(),
+            ]
 
         except Exception as e:
             logger.warning(e)
@@ -69,15 +81,20 @@ class Context:
     @staticmethod
     def _get_resource_creds_from_spn(
         cloud: dict, args: Namespace
-    ) -> ClientSecretCredential:
+    ) -> Tuple[identity.ClientSecretCredential, identity_aio.ClientSecretCredential]:
         """Get credentials using Service Principal Credentials"""
         try:
             logger.info(
                 f"Authenticating to {cloud['AD']} with Service Principal credentials."
             )
-            return ClientSecretCredential(
-                args.tenantid, args.clientid, args.secret, authority=cloud["AD"]
-            )
+            return [
+                identity.ClientSecretCredential(
+                    args.tenantid, args.clientid, args.secret, authority=cloud["AD"]
+                ),
+                identity_aio.ClientSecretCredential(
+                    args.tenantid, args.clientid, args.secret, authority=cloud["AD"]
+                ),
+            ]
         except Exception as e:
             logger.warning(e)
             return None
@@ -93,5 +110,10 @@ class Context:
         }
 
         cloud = Context._get_auth_cloud(args.cloud, args.config)
-        authenticatedCred = auth_func[args.auth](cloud, args)
-        return Context(cloud, authenticatedCred)
+        authenticatedCreds = auth_func[args.auth](cloud, args)
+        adaptedCred = AzureIdentityCredentialAdapter(
+            authenticatedCreds[0], cloud["ARM"] + "/.default"
+        )
+
+        authenticatedCreds.append(adaptedCred)
+        return Context(cloud, authenticatedCreds)
