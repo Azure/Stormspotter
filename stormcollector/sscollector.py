@@ -61,7 +61,13 @@ def main():
     parentParser.add_argument(
         "--subs",
         nargs="+",
-        help="Subscription you wish to scan. Multiple subscriptions can be added as a space deliminated list -s subid1 subid2",
+        help="Subscriptions you wish to scan. Multiple subscriptions can be added as a space deliminated list --subs subid1 subid2",
+    )
+
+    parentParser.add_argument(
+        "--nosubs",
+        nargs="+",
+        help="Subscriptions you wish to exclude from scanning. Multiple subscriptions can be added as a space deliminated list --nosubs subid1 subid2",
     )
 
     parser = argparse.ArgumentParser()

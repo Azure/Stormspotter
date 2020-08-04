@@ -4,12 +4,10 @@ from dataclasses import dataclass
 
 import aiohttp
 from loguru import logger
-from tinydb import TinyDB
 
 from . import OUTPUT_FOLDER
 from .auth import Context
-
-TinyDB.DEFAULT_TABLE_KWARGS = {"cache_size": 0}
+from .utils import sqlite_writer
 
 
 @dataclass
@@ -32,9 +30,6 @@ class AADObject:
     async def query_objects(self, headers: dict):
         logger.info(f"Starting query for {self.__class__.__name__}")
 
-        db_path = OUTPUT_FOLDER / f"{self.__class__.__name__}.json"
-        db = TinyDB(db_path)
-
         self.session = aiohttp.ClientSession(headers=headers)
         user_url = (
             f"{self.base_url}/{self.tenant_id}/{self.resource}?{self.api_version}"
@@ -49,7 +44,9 @@ class AADObject:
 
                 for value in response["value"]:
                     parsedVal = await self.parse(value)
-                    db.insert(parsedVal)
+                    await sqlite_writer(
+                        OUTPUT_FOLDER / f"{self.__class__.__name__}.sqlite", parsedVal
+                    )
                 if "odata.nextLink" in response:
                     user_url = f"{self.base_url}/{self.tenant_id}/{response['odata.nextLink']}&{self.api_version}"
                 else:

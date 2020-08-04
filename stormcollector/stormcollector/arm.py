@@ -11,10 +11,9 @@ from azure.mgmt.resource.resources.aio import ResourceManagementClient
 from azure.mgmt.resource.subscriptions.aio import SubscriptionClient
 from azure.mgmt.resource.subscriptions.models import Subscription
 from loguru import logger
-from tinydb import TinyDB
 
-from stormcollector.auth import Context
-
+from .auth import Context
+from .utils import sqlite_writer
 from . import OUTPUT_FOLDER
 
 
@@ -59,13 +58,15 @@ async def _query_subscription(ctx: Context, sub: Subscription):
         async for r_group in rm_client.resource_groups.list():
             sub_dict["resourceGroups"].append(r_group.as_dict())
 
-        db_path = OUTPUT_FOLDER / f"{sub.subscription_id}.json"
-        db = TinyDB(db_path)
-
         # GET RESOURCES IN SUBSCRIPTION
         async for resource in rm_client.resources.list():
-            resource = await _query_resource(rm_client, resource.id)
-            db.insert(resource)
+            res = await _query_resource(rm_client, resource.id)
+            if res:
+                output = OUTPUT_FOLDER / f"{sub.subscription_id}.sqlite"
+                await sqlite_writer(output, res)
+            else:
+                logger.warning(f"Could not access - {resource}")
+
     logger.info(f"Finished querying - {sub.subscription_id}")
     return sub_dict
 
@@ -121,15 +122,6 @@ async def _query_management_certs(ctx: Context, sub: Subscription):
 async def query_arm(ctx: Context, args: argparse.Namespace) -> None:
     logger.info(f"Starting enumeration for ARM - {ctx.cloud['ARM']}")
 
-    sub_db_path = OUTPUT_FOLDER / f"subscriptions.json"
-    sub_db = TinyDB(sub_db_path)
-
-    rbac_db_path = OUTPUT_FOLDER / f"rbac.json"
-    rbac_db = TinyDB(rbac_db_path)
-
-    certs_db_path = OUTPUT_FOLDER / f"certs.json"
-    certs_db = TinyDB(certs_db_path)
-
     async with SubscriptionClient(
         ctx.cred_async, base_url=ctx.cloud["ARM"]
     ) as sub_client:
@@ -140,36 +132,47 @@ async def query_arm(ctx: Context, args: argparse.Namespace) -> None:
                 f"Enumerating subscription and resource groups for tenant {tenant.tenant_id}"
             )
 
+            # GET LIST OF SUBS.
             sub_list = []
             async for subscription in sub_client.subscriptions.list():
                 if args.subs:
                     if not subscription.subscription_id in args.subs:
                         continue
+                if args.nosubs:
+                    if subscription.subscription_id in args.nosubs:
+                        continue
                 sub_list.append(subscription)
 
-            subTasks = [
-                asyncio.create_task(_query_subscription(ctx, sub)) for sub in sub_list
-            ]
+            if not sub_list:
+                logger.error(f"No subscriptions found for {tenant.tenant_id}")
+                continue
 
             if ctx.cloud["MGMT"]:
                 certsTasks = [
                     asyncio.create_task(_query_management_certs(ctx, sub))
                     for sub in sub_list
                 ]
+
+                certs_output = OUTPUT_FOLDER / f"certs.sqlite"
+
                 for cert in asyncio.as_completed(*[certsTasks]):
-                    if res := await cert:
-                        certs_db.insert(res)
+                    if await cert:
+                        await sqlite_writer(certs_output, cert)
 
             executor = concurrent.futures.ThreadPoolExecutor(max_workers=len(sub_list))
             rbacTasks = {executor.submit(_query_rbac, ctx, sub) for sub in sub_list}
 
+            rbac_output = OUTPUT_FOLDER / f"rbac.sqlite"
+            for rbac in concurrent.futures.as_completed(rbacTasks):
+                if rbac.result():
+                    await sqlite_writer(rbac_output, rbac.result())
+
+            subTasks = [
+                asyncio.create_task(_query_subscription(ctx, sub)) for sub in sub_list
+            ]
+
             for result in asyncio.as_completed(*[subTasks]):
                 tenant_dict["subscriptions"].append(await result)
 
-            sub_db.insert(tenant_dict)
-
-            for rbac in concurrent.futures.as_completed(rbacTasks):
-                try:
-                    rbac_db.insert_multiple(rbac.result())
-                except Exception as e:
-                    logger.error(e)
+            tenant_output = OUTPUT_FOLDER / f"tenant.sqlite"
+            await sqlite_writer(tenant_output, tenant_dict)
