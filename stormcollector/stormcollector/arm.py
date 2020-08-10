@@ -12,9 +12,9 @@ from azure.mgmt.resource.subscriptions.aio import SubscriptionClient
 from azure.mgmt.resource.subscriptions.models import Subscription
 from loguru import logger
 
+from . import OUTPUT_FOLDER
 from .auth import Context
 from .utils import sqlite_writer
-from . import OUTPUT_FOLDER
 
 
 async def _query_resource(
@@ -85,6 +85,7 @@ def _query_rbac(ctx: Context, sub: Subscription):
             roles.append(role_dict)
         except Exception as ex:
             logger.error(ex)
+    logger.info(f"Finishing rbac permissions for subscription: {sub.subscription_id}")
     return roles
 
 
@@ -115,6 +116,7 @@ async def _query_management_certs(ctx: Context, sub: Subscription):
                     ].firstChild.nodeValue,
                 }
                 certs.append(cert_asset)
+    logger.info(f"Finished management certs for subscription: {sub.subscription_id}")
     return certs
 
 
