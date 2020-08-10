@@ -10,6 +10,7 @@ from stormcollector import OUTPUT_FOLDER
 from stormcollector.aad import query_aad
 from stormcollector.arm import query_arm
 from stormcollector.auth import Context
+from stormcollector.utils import json_convert
 
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
@@ -34,6 +35,11 @@ async def run(args: argparse.Namespace):
 
     await asyncio.wait(tasks)
     await context.cred_async.close()
+
+    if args.json:
+        logger.info("Converting SQLite output to json")
+        await json_convert(OUTPUT_FOLDER)
+        logger.info("Finished SQLite to JSON conversion")
 
 
 def main():
@@ -70,6 +76,10 @@ def main():
         help="Subscriptions you wish to exclude from scanning. Multiple subscriptions can be added as a space deliminated list --nosubs subid1 subid2",
     )
 
+    parentParser.add_argument(
+        "--json", help="Convert sqlite output to json", action="store_true"
+    )
+
     parser = argparse.ArgumentParser()
     authParser = parser.add_subparsers(help="Methods of authentication", dest="auth")
 
@@ -95,11 +105,13 @@ def main():
         start_time = time.time()
 
         asyncio.run(run(args))
+        logger.info("Zipping up output...")
         shutil.make_archive(OUTPUT_FOLDER, "zip", OUTPUT_FOLDER)
-        logger.info(
-            f"--- COMPLETE: {time.time() - start_time} seconds. OUTPUT FOLDER: {OUTPUT_FOLDER.absolute()}.zip ---"
-        )
         shutil.rmtree(OUTPUT_FOLDER)
+
+        logger.info(
+            f"--- COMPLETE: {time.time() - start_time} seconds. OUTPUT: {OUTPUT_FOLDER.absolute()}.zip ---"
+        )
     else:
         parser.print_help()
 

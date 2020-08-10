@@ -13,10 +13,12 @@ portalocker = "^1.7.1"
 azure-common = "^1.1.25"
 azure-mgmt-resource = "15.0.0b1"
 azure-mgmt-authorization = "^0.60.0"
-azure-identity = "1.4.0b7"
+azure-identity = "^1.4.0"
 uvloop = {version = "^0.14.0", platform = "linux"}
 pywin32 = {version = "228", platform = "win"}
 aiosqlite = "^0.15.0"
+orjson = "^3.3.0"
+aiofiles = "^0.5.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
