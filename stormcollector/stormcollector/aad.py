@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import aiohttp
 from loguru import logger
 
-from . import OUTPUT_FOLDER
+from . import OUTPUT_FOLDER, SSL_CONTEXT
 from .auth import Context
 from .utils import sqlite_writer
 
@@ -30,7 +30,7 @@ class AADObject:
     async def query_objects(self, headers: dict):
         logger.info(f"Starting query for {self.__class__.__name__}")
 
-        self.session = aiohttp.ClientSession(headers=headers)
+        self.session = aiohttp.ClientSession(headers=headers, connector=SSL_CONTEXT)
         user_url = (
             f"{self.base_url}/{self.tenant_id}/{self.resource}?{self.api_version}"
         )

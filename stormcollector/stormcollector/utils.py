@@ -1,11 +1,21 @@
 import asyncio
+import sys
 from pathlib import Path
-from loguru import logger
 
 import aiofiles
 import aiosqlite
 import orjson
-import json
+from loguru import logger
+
+
+def proactor_win32_patch(event):
+    if (
+        event.exc_type == RuntimeError
+        and str(event.exc_value) == "Event loop is closed"
+    ):
+        pass
+    else:
+        sys.__unraisablehook__(event)
 
 
 async def sqlite_writer(output, res):

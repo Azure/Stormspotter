@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "stormcollector"
-version = "0.1.0"
+version = "1.0.0b"
 description = ""
 authors = ["Leron Gray <daddycocoaman@gmail.com>"]
 
