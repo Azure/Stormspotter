@@ -1,23 +1,27 @@
 import argparse
 import asyncio
 import shutil
+import os
+import ssl
 import sys
 import time
+from pathlib import Path
 
+import aiohttp
 from loguru import logger
 
-from stormcollector import OUTPUT_FOLDER
+from stormcollector import OUTPUT_FOLDER, SSL_CONTEXT
 from stormcollector.aad import query_aad
 from stormcollector.arm import query_arm
 from stormcollector.auth import Context
-from stormcollector.utils import json_convert
+from stormcollector.utils import json_convert, proactor_win32_patch
 
-if sys.platform == "win32":
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-else:
+if sys.platform == "nix":
     import uvloop
 
     uvloop.install()
+elif sys.platform == "win32":
+    sys.unraisablehook = proactor_win32_patch
 
 
 async def run(args: argparse.Namespace):
@@ -80,6 +84,10 @@ def main():
         "--json", help="Convert sqlite output to json", action="store_true"
     )
 
+    parentParser.add_argument(
+        "--ssl-cert", help="Convert sqlite output to json", type=argparse.FileType("r")
+    )
+
     parser = argparse.ArgumentParser()
     authParser = parser.add_subparsers(help="Methods of authentication", dest="auth")
 
@@ -103,6 +111,13 @@ def main():
     args = parser.parse_args()
     if hasattr(args, "get_creds"):
         start_time = time.time()
+
+        if args.ssl_cert:
+            cert_path = Path(args.ssl_cert.name).absolute()
+            os.environ["REQUESTS_CA_BUNDLE"] = str(cert_path)
+            print(os.environ)
+            sslcontext = ssl.create_default_context(cafile=cert_path)
+            SSL_CONTEXT = aiohttp.TCPConnector(ssl_context=sslcontext)
 
         asyncio.run(run(args))
         logger.info("Zipping up output...")

@@ -12,7 +12,7 @@ from azure.mgmt.resource.subscriptions.aio import SubscriptionClient
 from azure.mgmt.resource.subscriptions.models import Subscription
 from loguru import logger
 
-from . import OUTPUT_FOLDER
+from . import OUTPUT_FOLDER, SSL_CONTEXT
 from .auth import Context
 from .utils import sqlite_writer
 
@@ -95,7 +95,7 @@ async def _query_management_certs(ctx: Context, sub: Subscription):
     headers = {"x-ms-version": "2012-03-01"}
 
     certs = []
-    async with aiohttp.ClientSession(headers=headers) as session:
+    async with aiohttp.ClientSession(headers=headers, connector=SSL_CONTEXT) as session:
         url = f"{ctx.cloud['MGMT']}/{sub.subscription_id}/certificates"
         async with session.get(url) as resp:
             if "ForbiddenError" in await resp.text():
