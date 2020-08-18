@@ -165,9 +165,10 @@ async def query_arm(ctx: Context, args: argparse.Namespace) -> None:
             rbacTasks = {executor.submit(_query_rbac, ctx, sub) for sub in sub_list}
 
             rbac_output = OUTPUT_FOLDER / f"rbac.sqlite"
-            for rbac in concurrent.futures.as_completed(rbacTasks):
+            for rbac in concurrent.futures.as_completed(*[rbacTasks]):
                 if rbac.result():
-                    await sqlite_writer(rbac_output, rbac.result()[0])
+                    for role in rbac.result():
+                        await sqlite_writer(rbac_output, role)
 
             subTasks = [
                 asyncio.create_task(_query_subscription(ctx, sub)) for sub in sub_list

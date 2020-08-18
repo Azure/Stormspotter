@@ -18,7 +18,7 @@ def proactor_win32_patch(event):
         sys.__unraisablehook__(event)
 
 
-async def sqlite_writer(output, res):
+async def sqlite_writer(output: Path, res):
     if not Path(output).exists():
         async with aiosqlite.connect(output) as db:
             await db.execute(
