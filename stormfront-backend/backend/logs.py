@@ -51,6 +51,12 @@ def format_record(record: dict) -> str:
         )
         format_string += "\n<level>{extra[payload]}</level>"
 
+    if record["exception"] is not None:
+        record["extra"]["stack"] = pformat(
+            record["exception"], indent=4, compact=True, width=88
+        )
+        format_string += "\n{extra[stack]}"
+
     format_string += "\n"
     return format_string
 

@@ -1,11 +1,12 @@
 import logging
 import sys
+
+from fastapi import BackgroundTasks, FastAPI, File, Header, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 
 from backend.logs import InterceptHandler, format_record, logger
 from backend.parser import SSProcessor
-from fastapi import BackgroundTasks, FastAPI, File, Header, UploadFile
-from fastapi.middleware.cors import CORSMiddleware
 
 # LOGGING
 logger.configure(

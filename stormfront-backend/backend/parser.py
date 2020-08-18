@@ -23,6 +23,23 @@ class SSProcessor:
             "ServicePrincipal": self._parseAADServicePrincipal,
             "Application": self._parseAADApplication,
         }
+        self._arm_methods = {
+            "microsoft.compute/disks": self._parseDisk,
+            "microsoft.compute/virtualmachines": self._parseVirtualMachine,
+            "microsoft.keyvault/vaults": self._parseKeyVault,
+            "microsoft.network/loadbalancers": self._parseLoadBalancer,
+            "microsoft.network/networkinterfaces": self._parseNetInterface,
+            "microsoft.network/networksecuritygroups": self._parseNSG,
+            "microsoft.network/publicipaddresses": self._parsePublicIp,
+            "microsoft.servicefabric/clusters": self._parseServiceFabric,
+            "microsoft.sql/servers": self._parseSqlServer,
+            "microsoft.sql/servers/databases": self._parseSqlDb,
+            "microsoft.storage/storageaccounts": self._parseStorageAccount,
+            "microsoft.web/serverfarms": self._parseServerFarm,
+            "microsoft.web/sites": self._parseWebsite,
+            # "microsoft.classiccompute/domainnames": self._parseDomainNames,
+            "microsoft.servicebus/namespaces": self._parseServiceBus,
+        }
 
     @logger.catch
     async def _parseProperty(self, value: Any) -> Any:
@@ -31,33 +48,46 @@ class SSProcessor:
         elif isinstance(value, list):
             if len(value) and all(isinstance(item, (str, int, bool)) for item in value):
                 return value
+            # Need to either flatten dicts or reject them outright and rely on raw field
             elif len(value) and any(isinstance(item, dict) for item in value):
-                return orjson.dumps(value).decode()
+                pass
         elif isinstance(value, dict):
-            return orjson.dumps(value)
+            # Need to either flatten dicts or reject them outright and rely on raw field
+            pass
 
     @logger.catch
-    async def _postProcessResource(self, resource) -> dict:
+    async def _postProcessResource(self, resource: dict) -> dict:
         resource_attrs = {
             k: await self._parseProperty(v) for k, v in resource.items() if k != "raw"
         }
-        resource_props = (
-            {
-                k: await self._parseProperty(v)
-                for k, v in resource.get("properties").items()
-            }
-            if resource.get("properties")
-            else {}
-        )
+        resource_attrs["raw"] = resource["raw"]
+
+        resource_props = {}
+        if resource.get("properties"):
+            for k, v in resource.get("properties").items():
+                if parsedV := await self._parseProperty(v):
+                    resource_props[k] = parsedV
+
+        if resource_props:
+            del resource_attrs["properties"]
 
         return {**resource_attrs, **resource_props}
 
     async def _parseObject(self, data: dict, fields: List[str], label: str) -> dict:
-        data = {f: data.get(f) for f in fields}
-        data["raw"] = orjson.dumps(data).decode()
-        data["type"] = label
-        data["tags"] = str(data.get("tags"))
-        return data
+        parsed = {f: data.get(f) for f in fields}
+        parsed["raw"] = orjson.dumps(data).decode()
+        parsed["type"] = label
+
+        tags = []
+        if dataTags := data.get("tags"):
+            if isinstance(dataTags, dict):
+                for k, v in dataTags.items():
+                    tags.extend([k, v])
+            elif isinstance(dataTags, list):
+                tags.append(dataTags)
+
+        parsed["tags"] = tags
+        return parsed
 
     @logger.catch
     async def _processAADUser(self, user: dict):
@@ -236,6 +266,429 @@ class SSProcessor:
                     DEFAULT_REL,
                 )
 
+    @logger.catch
+    async def _parseDisk(self, disk: dict, rgroup: str):
+        parsed = await self._parseObject(disk, disk.keys(), DISK_NODE_LABEL)
+        post_disk = await self._postProcessResource(parsed)
+
+        self.neo.insert_asset(
+            post_disk, DISK_NODE_LABEL, post_disk["id"], [GENERIC_NODE_LABEL]
+        )
+        self.neo.create_relationship(
+            rgroup,
+            RESOURCEGROUP_NODE_LABEL,
+            post_disk["id"],
+            DISK_NODE_LABEL,
+            DEFAULT_REL,
+        )
+
+        if ownerid := disk.get("ownerId"):
+            self.neo.create_relationship(
+                ownerid,
+                VIRTUALMACHINE_NODE_LABEL,
+                post_disk["id"],
+                DISK_NODE_LABEL,
+                ATTACHED_TO_ASSET,
+            )
+
+    @logger.catch
+    async def _parseGeneric(self, generic: dict, rgroup: str):
+        parsed = await self._parseObject(generic, generic.keys(), GENERIC_NODE_LABEL)
+        post_generic = await self._postProcessResource(parsed)
+
+        self.neo.insert_asset(post_generic, GENERIC_NODE_LABEL, post_generic["id"])
+        self.neo.create_relationship(
+            rgroup,
+            RESOURCEGROUP_NODE_LABEL,
+            post_generic["id"],
+            GENERIC_NODE_LABEL,
+            DEFAULT_REL,
+        )
+
+    @logger.catch
+    async def _parseKeyVault(self, kv: dict, rgroup: str):
+        parsed = await self._parseObject(kv, kv.keys(), KEYVAULT_NODE_LABEL)
+        post_kv = await self._postProcessResource(parsed)
+        self.neo.insert_asset(
+            post_kv, KEYVAULT_NODE_LABEL, post_kv["id"], [GENERIC_NODE_LABEL]
+        )
+        self.neo.create_relationship(
+            rgroup,
+            RESOURCEGROUP_NODE_LABEL,
+            post_kv["id"],
+            KEYVAULT_NODE_LABEL,
+            DEFAULT_REL,
+        )
+
+        for policy in kv["properties"]["accessPolicies"]:
+            self.neo.create_relationship(
+                policy["objectId"],
+                AADOBJECT_NODE_LABEL,
+                post_kv["id"],
+                KEYVAULT_NODE_LABEL,
+                HAS_PERMISSIONS,
+                to_find_type="MATCH",
+                relationship_properties=policy["permissions"],
+            )
+
+    @logger.catch
+    async def _parseLoadBalancer(self, lb: dict, rgroup: str):
+        # TODO Verify LB JSON
+        parsed = await self._parseObject(lb, lb.keys(), LOADBALANCER_NODE_LABEL)
+        post_lb = await self._postProcessResource(parsed)
+
+        self.neo.insert_asset(
+            post_lb, LOADBALANCER_NODE_LABEL, post_lb["id"], [GENERIC_NODE_LABEL]
+        )
+        self.neo.create_relationship(
+            rgroup,
+            RESOURCEGROUP_NODE_LABEL,
+            post_lb["id"],
+            LOADBALANCER_NODE_LABEL,
+            DEFAULT_REL,
+        )
+
+    @logger.catch
+    async def _parsePublicIp(self, pip: dict, rgroup: str):
+        parsed = await self._parseObject(pip, pip.keys(), PUBLIC_IP_NODE_LABEL)
+        post_pip = await self._postProcessResource(parsed)
+
+        post_pip["fqdn"] = pip.get("properties", {}).get("dnsSettings", {}).get("fqdn")
+        self.neo.insert_asset(
+            post_pip, PUBLIC_IP_NODE_LABEL, post_pip["id"], [GENERIC_NODE_LABEL]
+        )
+        self.neo.create_relationship(
+            rgroup,
+            RESOURCEGROUP_NODE_LABEL,
+            post_pip["id"],
+            PUBLIC_IP_NODE_LABEL,
+            DEFAULT_REL,
+        )
+
+    @logger.catch
+    async def _parseNSG(self, nsg: dict, rgroup: str):
+        parsed = await self._parseObject(nsg, nsg.keys(), NSG_NODE_LABEL)
+        post_nsg = await self._postProcessResource(parsed)
+
+        self.neo.insert_asset(
+            post_nsg, NSG_NODE_LABEL, post_nsg["id"], [GENERIC_NODE_LABEL]
+        )
+        self.neo.create_relationship(
+            rgroup,
+            RESOURCEGROUP_NODE_LABEL,
+            post_nsg["id"],
+            NSG_NODE_LABEL,
+            DEFAULT_REL,
+        )
+
+        for secrule in nsg["properties"]["securityRules"]:
+            if secrule["properties"]["access"] == "Allow":
+                parsed_rule = await self._parseObject(
+                    secrule, secrule.keys(), RULE_NODE_LABEL
+                )
+                post_rule = await self._postProcessResource(parsed_rule)
+
+                self.neo.insert_asset(
+                    post_rule, RULE_NODE_LABEL, post_rule["id"], [GENERIC_NODE_LABEL]
+                )
+                self.neo.create_relationship(
+                    post_nsg["id"],
+                    NSG_NODE_LABEL,
+                    post_rule["id"],
+                    RULE_NODE_LABEL,
+                    ASSET_TO_ENDPOINT_OR_IP,
+                )
+
+        if netifs := nsg["properties"].get("networkInterfaces"):
+            for ni in netifs:
+                parsed_ni = await self._parseObject(ni, ni.keys(), RULE_NODE_LABEL)
+                post_ni = await self._postProcessResource(parsed_ni)
+                self.neo.create_relationship(
+                    post_ni["id"],
+                    NETWORKINTERFACE_NODE_LABEL,
+                    post_nsg["id"],
+                    NSG_NODE_LABEL,
+                    NIC_TO_NSG,
+                )
+
+    @logger.catch
+    async def _parseNetInterface(self, ni: dict, rgroup: str):
+        parsed = await self._parseObject(ni, ni.keys(), NETWORKINTERFACE_NODE_LABEL)
+        post_ni = await self._postProcessResource(parsed)
+        self.neo.insert_asset(
+            post_ni, NETWORKINTERFACE_NODE_LABEL, post_ni["id"], [GENERIC_NODE_LABEL]
+        )
+        self.neo.create_relationship(
+            rgroup,
+            RESOURCEGROUP_NODE_LABEL,
+            post_ni["id"],
+            NETWORKINTERFACE_NODE_LABEL,
+            DEFAULT_REL,
+        )
+
+        vm = None
+        if vm := ni["properties"].get("virtualMachine"):
+            self.neo.create_relationship(
+                vm["id"],
+                VIRTUALMACHINE_NODE_LABEL,
+                post_ni["id"],
+                NETWORKINTERFACE_NODE_LABEL,
+                ATTACHED_TO_ASSET,
+            )
+
+        for ipconf in ni["properties"]["ipConfigurations"]:
+            parsed_conf = await self._parseObject(
+                ipconf, ipconf.keys(), IPCONFIG_NODE_LABEL
+            )
+            post_conf = await self._postProcessResource(parsed_conf)
+
+            self.neo.insert_asset(
+                post_conf, IPCONFIG_NODE_LABEL, post_conf["id"], [GENERIC_NODE_LABEL]
+            )
+            if publicip := ipconf["properties"].get("publicIPAddress"):
+                self.neo.create_relationship(
+                    post_conf["id"],
+                    IPCONFIG_NODE_LABEL,
+                    publicip["id"],
+                    PUBLIC_IP_NODE_LABEL,
+                    ASSET_TO_ENDPOINT_OR_IP,
+                )
+
+            if subnet := ipconf["properties"].get("subnet"):
+                id_list = subnet["id"].split("/")
+                subnet_name = id_list[-1]
+                vnet_name = id_list[-3]
+                vnet_id = "/".join(id_list[:-2])
+                vnet = {
+                    "id": vnet_id,
+                    "name": vnet_name,
+                    "subnet": subnet_name,
+                    "type": VIRTUALNETWORK_NODE_LABEL,
+                }
+                self.neo.insert_asset(
+                    vnet, VIRTUALNETWORK_NODE_LABEL, vnet_id, [GENERIC_NODE_LABEL]
+                )
+                self.neo.create_relationship(
+                    vnet_id,
+                    VIRTUALNETWORK_NODE_LABEL,
+                    post_conf["id"],
+                    IPCONFIG_NODE_LABEL,
+                    IPCONFIG_TO_NIC,
+                )
+                self.neo.create_relationship(
+                    rgroup,
+                    RESOURCEGROUP_NODE_LABEL,
+                    vnet_id,
+                    VIRTUALNETWORK_NODE_LABEL,
+                    DEFAULT_REL,
+                )
+
+                if vm:
+                    self.neo.create_relationship(
+                        vm["id"],
+                        VIRTUALMACHINE_NODE_LABEL,
+                        vnet_id,
+                        VIRTUALNETWORK_NODE_LABEL,
+                        ASSET_TO_VNET,
+                    )
+
+    @logger.catch
+    async def _parseRbac(self, rbac: dict):
+        self.neo.create_relationship(
+            rbac["principal_id"],
+            AADOBJECT_NODE_LABEL,
+            rbac["scope"],
+            GENERIC_NODE_LABEL,
+            HAS_RBAC,
+            relationship_properties=rbac["permissions"][0],
+            relationship_unique_value=rbac["id"],
+        )
+
+    @logger.catch
+    async def _parseServerFarm(self, farm: dict, rgroup: str):
+        prepped = {**farm, **{k: v for k, v in farm["sku"].items() if k != "name"}}
+        parsed = await self._parseObject(prepped, prepped.keys(), SERVERFARM_NODE_LABEL)
+        post_farm = await self._postProcessResource(parsed)
+
+        self.neo.insert_asset(
+            post_farm, SERVERFARM_NODE_LABEL, post_farm["id"], [GENERIC_NODE_LABEL]
+        )
+        self.neo.create_relationship(
+            rgroup,
+            RESOURCEGROUP_NODE_LABEL,
+            post_farm["id"],
+            SERVERFARM_NODE_LABEL,
+            DEFAULT_REL,
+        )
+
+    @logger.catch
+    async def _parseServiceFabric(self, fabric: dict, rgroup: str):
+        parsed = await self._parseObject(
+            fabric, fabric.keys(), SERVICEFABRIC_NODE_LABEL
+        )
+        post_fabric = await self._postProcessResource(parsed)
+
+        self.neo.insert_asset(
+            post_fabric,
+            SERVICEFABRIC_NODE_LABEL,
+            post_fabric["id"],
+            [GENERIC_NODE_LABEL],
+        )
+        self.neo.create_relationship(
+            rgroup,
+            RESOURCEGROUP_NODE_LABEL,
+            post_fabric["id"],
+            SERVICEFABRIC_NODE_LABEL,
+            DEFAULT_REL,
+        )
+
+    @logger.catch
+    async def _parseServiceBus(self, bus: dict, rgroup: str):
+        parsed = await self._parseObject(
+            bus, bus.keys(), SERVICEBUSNAMESPACE_NODE_LABEL
+        )
+        post_bus = await self._postProcessResource(parsed)
+
+        self.neo.insert_asset(
+            post_bus,
+            SERVICEBUSNAMESPACE_NODE_LABEL,
+            post_bus["id"],
+            [GENERIC_NODE_LABEL],
+        )
+        self.neo.create_relationship(
+            rgroup,
+            RESOURCEGROUP_NODE_LABEL,
+            post_bus["id"],
+            SERVICEBUSNAMESPACE_NODE_LABEL,
+            DEFAULT_REL,
+        )
+
+    @logger.catch
+    async def _parseSqlServer(self, server: dict, rgroup: str):
+        print(server)
+        parsed = await self._parseObject(server, server.keys(), SQLSERVER_NODE_LABEL)
+        post_server = await self._postProcessResource(parsed)
+
+        self.neo.insert_asset(
+            post_server, SQLSERVER_NODE_LABEL, post_server["id"], [GENERIC_NODE_LABEL]
+        )
+        self.neo.create_relationship(
+            rgroup,
+            RESOURCEGROUP_NODE_LABEL,
+            post_server["id"],
+            SQLSERVER_NODE_LABEL,
+            DEFAULT_REL,
+        )
+
+    @logger.catch
+    async def _parseSqlDb(self, db: dict, rgroup: str):
+        parsed = await self._parseObject(db, db.keys(), SQLDATABASE_NODE_LABEL)
+        post_db = await self._postProcessResource(parsed)
+
+        self.neo.insert_asset(
+            post_db, SQLDATABASE_NODE_LABEL, post_db["id"], [GENERIC_NODE_LABEL]
+        )
+
+        if serverid := db.get("managedBy"):
+            self.neo.create_relationship(
+                serverid,
+                SQLSERVER_NODE_LABEL,
+                post_db["id"],
+                SQLDATABASE_NODE_LABEL,
+                ASSET_TO_MANAGED,
+            )
+        else:
+            self.neo.create_relationship(
+                resource_group,
+                RESOURCEGROUP_NODE_LABEL,
+                post_db["id"],
+                SQLDATABASE_NODE_LABEL,
+                DEFAULT_REL,
+            )
+
+    @logger.catch
+    async def _parseStorageAccount(self, storage: dict, rgroup: str):
+        parsed = await self._parseObject(
+            storage, storage.keys(), STORAGEACCOUNT_NODE_LABEL
+        )
+        post_storage = await self._postProcessResource(parsed)
+
+        post_storage["primaryEndpoints"] = list(
+            storage["properties"]["primaryEndpoints"].values()
+        )
+        self.neo.insert_asset(
+            post_storage,
+            STORAGEACCOUNT_NODE_LABEL,
+            post_storage["id"],
+            [GENERIC_NODE_LABEL],
+        )
+        self.neo.create_relationship(
+            rgroup,
+            RESOURCEGROUP_NODE_LABEL,
+            post_storage["id"],
+            STORAGEACCOUNT_NODE_LABEL,
+            DEFAULT_REL,
+        )
+
+    @logger.catch
+    async def _parseVirtualMachine(self, vm: dict, rgroup: str):
+        parsed = await self._parseObject(vm, vm.keys(), VIRTUALMACHINE_NODE_LABEL)
+        post_vm = await self._postProcessResource(parsed)
+
+        # TODO: Parse VM JSON
+        if vm["properties"].get("availabilitySet"):
+            vmas_id = vm["properties"]["availabilitySet"]["id"]
+            vmas_name = vmas_id.split("/")[-1]
+            vmas_asset = {"id": vmas_id, "name": vmas_name}
+            self.neo.insert_asset(
+                vmas_asset, AVAILABILITYSET_NODE_LABEL, vmas_id, [GENERIC_NODE_LABEL]
+            )
+            self.neo.create_relationship(
+                vmas_id,
+                AVAILABILITYSET_NODE_LABEL,
+                vm["id"],
+                VIRTUALMACHINE_NODE_LABEL,
+                DEFAULT_REL,
+            )
+
+        else:
+            self.neo.insert_asset(
+                post_vm, VIRTUALMACHINE_NODE_LABEL, post_vm["id"], [GENERIC_NODE_LABEL]
+            )
+
+        self.neo.create_relationship(
+            rgroup,
+            RESOURCEGROUP_NODE_LABEL,
+            post_vm["id"],
+            VIRTUALMACHINE_NODE_LABEL,
+            DEFAULT_REL,
+        )
+
+    @logger.catch
+    async def _parseWebsite(self, site: dict, rgroup: str):
+        parsed = await self._parseObject(site, site.keys(), WEBSITE_NODE_LABEL)
+        post_site = await self._postProcessResource(parsed)
+
+        self.neo.insert_asset(
+            post_site, WEBSITE_NODE_LABEL, post_site["id"], [GENERIC_NODE_LABEL]
+        )
+        self.neo.create_relationship(
+            rgroup,
+            RESOURCEGROUP_NODE_LABEL,
+            post_site["id"],
+            WEBSITE_NODE_LABEL,
+            DEFAULT_REL,
+        )
+
+        if serverfarmid := site["properties"].get("serverFarmId"):
+            self.neo.create_relationship(
+                serverfarmid,
+                SERVERFARM_NODE_LABEL,
+                post_site["id"],
+                WEBSITE_NODE_LABEL,
+                DEFAULT_REL,
+            )
+
     async def _process_json(self, json):
         res = orjson.loads(json)
 
@@ -245,6 +698,20 @@ class SSProcessor:
         # AAD OBJECTS
         elif objtype := res.get("objectType"):
             await self._aad_methods[objtype](res)
+
+        # ARM OBJECTS
+        elif res.get("type"):
+            objtype = res.get("type").lower()
+            res["type"] = objtype
+
+            if objtype == "microsoft.authorization/roleassignments":
+                await self._parseRbac(res)
+            elif objtype in self._arm_methods.keys():
+                resource_group = res["id"].split("/providers")[0]
+                await self._arm_methods[objtype](res, resource_group)
+            else:
+                resource_group = res["id"].split("/providers")[0]
+                await self._parseGeneric(res, resource_group)
 
     @logger.catch
     async def is_sqlite(self, file: Path):
@@ -280,3 +747,4 @@ class SSProcessor:
             await asyncio.gather(*[self.process_sqlite(s) for s in sqlite_files])
 
             shutil.rmtree(tempdir)
+        logger.info(f"Completed ingestion of {filename}")

@@ -2,12 +2,13 @@
 import inspect
 import sys
 import threading
-import loguru
 
+import loguru
 import neo4j
+from loguru import logger
 from neo4j import GraphDatabase
 from neo4j.exceptions import AuthError, ClientError
-from loguru import logger
+
 from . import resources as labels
 
 
