@@ -82,6 +82,9 @@ def _query_rbac(ctx: Context, sub: Subscription):
             role_dict = role.as_dict()
             definition = auth_client.role_definitions.get_by_id(role.role_definition_id)
             role_dict["permissions"] = [p.as_dict() for p in definition.permissions]
+            role_dict["roleName"] = definition.role_name
+            role_dict["roleType"] = definition.role_type
+            role_dict["roleDescription"] = definition.description
             roles.append(role_dict)
         except Exception as ex:
             logger.error(ex)
