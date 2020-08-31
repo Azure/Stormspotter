@@ -2,7 +2,7 @@
 name = "stormcollector"
 version = "1.0.0b"
 description = ""
-authors = ["Leron Gray <daddycocoaman@gmail.com>"]
+authors = ["Leron Gray <legra@microsoft.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"

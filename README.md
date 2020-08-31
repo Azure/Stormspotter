@@ -6,9 +6,9 @@
 
 # Stormspotter
 
-Stormspotter creates an “attack graph” of the resources in an Azure subscription. It enables red teams and pentesters to visualize the attack surface and pivot opportunities within a tenant, and supercharges your defenders to quickly orient and prioritize incident response work.  
+Stormspotter creates an “attack graph” of the resources in an Azure subscription. It enables red teams and pentesters to visualize the attack surface and pivot opportunities within a tenant, and supercharges your defenders to quickly orient and prioritize incident response work.
 
-It needs reader access to the subscription you wish to import and/or Directory.Read access to the Azure AD tenants. 
+It needs reader access to the subscription you wish to import and/or Directory.Read access to the Azure AD tenants.
 
 ---
 
@@ -24,25 +24,29 @@ docker run --name stormspotter -p7474:7474 -p7687:7687 -d --env NEO4J_AUTH=neo4j
 ```
 
 ## Running Stormspotter
-In order to avoid conflicting packages, it is highly recommended to run Stormspotter in a virtual environment. 
+
+In order to avoid conflicting packages, it is highly recommended to run Stormspotter in a virtual environment.
 
 1. Install the requirements
 
-    - From the repository (**RECOMMENDED**)
-    ```
-    git clone https://github.com/Azure/Stormspotter
-    cd Stormspotter
-    pipenv install .
-    ```
+   - From the repository (**RECOMMENDED**)
 
-    - Via pipenv
-    ```
-    python -m pip install pipenv
-    pipenv install stormspotter==1.0.0a0
-    ```
+   ```
+   git clone https://github.com/Azure/Stormspotter
+   cd Stormspotter
+   pipenv install .
+   ```
+
+   - Via pipenv
+
+   ```
+   python -m pip install pipenv
+   pipenv install stormspotter==1.0.0a0
+   ```
 
 #### Providing credentials
-Current login types supported: 
+
+Current login types supported:
 
 - Azure CLI (must use `az login` first)
 - Service Principal Client ID/Secret
@@ -50,41 +54,43 @@ Current login types supported:
 #### Gather and view resources
 
 1. Run stormspotter to gather resource and object information
-   
-    - Via CLI login
-    ```
-    stormspotter --cli
-    ```
 
-    - Via Service Principal
-    ```
-    stormspotter --service-principal -u <client id> -p <client secret> -t <tenant id>
-    ```
-    
+   - Via CLI login
+
+   ```
+   stormspotter --cli
+   ```
+
+   - Via Service Principal
+
+   ```
+   stormspotter --service-principal -u <client id> -p <client secret> -t <tenant id>
+   ```
+
 2. Run stormdash to launch dashboard
-    ```
-    stormdash -dbu <neo4j-user> -dbp <neo4j-pass>
-    ```
+
+   ```
+   stormdash -dbu <neo4j-user> -dbp <neo4j-pass>
+   ```
 
 3. During installation, a `.stormspotter` folder is created in the user's home directory. Place the results zip file into `~/.stormspotter/input` folder. You may also place the zip file into the folder before running `stormdash` and it will be processed when Stormspotter starts. When a file is successfully processed, it will be moved into `~/.stormspotter/processed`.
 
-4. Browse to http://127.0.0.1:8050 to interact with the graph. 
-   
+4. Browse to http://127.0.0.1:8050 to interact with the graph.
 
 ## Notes
+
 - With Stormspotter currently in alpha, not all resource types have been implemented in Stormdash. You may see labels with missing icons and/or simply display the "name" and "type" fields. You can still view the data associated with these assets by clicking the "Raw Data" slider. Over time, more resources will be properly implemented.
 - The node expansion feature has not been implemented yet. This feature will allow you to interact with a node to see all of its relations. As an fallback to Stormdash, you can visit the Neo4J instance directly to use this feature.
-  
+
 # Screenshots
 
 ![Screenshot1](misc/screenshot1.png)
 ![Screenshot2](misc/screenshot2.png)
 ![Screenshot3](misc/screenshot3.png)
 
-
 # Contributing
 
-This project welcomes contributions and suggestions.  Most contributions require you to agree to a
+This project welcomes contributions and suggestions. Most contributions require you to agree to a
 Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
 the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
 
