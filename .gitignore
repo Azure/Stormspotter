@@ -23,6 +23,7 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
+.ionide/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
