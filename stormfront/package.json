@@ -1,0 +1,53 @@
+{
+  "name": "stormfront",
+  "version": "0.0.1",
+  "description": "UI for Stormspotter",
+  "productName": "Stormspotter",
+  "author": "Leron Gray <legra@microsoft.com>",
+  "private": true,
+  "scripts": {
+    "lint": "eslint --ext .js,.vue ./",
+    "test": "echo \"No test specified\" && exit 0"
+  },
+  "dependencies": {
+    "@quasar/extras": "^1.0.0",
+    "axios": "^0.18.1",
+    "core-js": "^3.6.5",
+    "cytoscape-cola": "^2.4.0",
+    "cytoscape-cose-bilkent": "^4.1.0",
+    "cytoscape-cxtmenu": "^3.1.2",
+    "cytoscape-dagre": "^2.2.2",
+    "cytoscape-klay": "^3.1.3",
+    "flush-promises": "^1.0.2",
+    "lodash": "^4.17.20",
+    "quasar": "^1.0.0",
+    "vue-codemirror": "^4.0.6",
+    "vue-cytoscape": "^1.0.8",
+    "vue-neo4j": "^0.4.5"
+  },
+  "devDependencies": {
+    "@quasar/app": "^2.0.0",
+    "babel-eslint": "^10.0.1",
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.9.0",
+    "eslint-loader": "^3.0.3",
+    "eslint-plugin-vue": "^6.1.2",
+    "prettier": "2.0.5"
+  },
+  "browserslist": [
+    "last 10 Chrome versions",
+    "last 10 Firefox versions",
+    "last 4 Edge versions",
+    "last 7 Safari versions",
+    "last 8 Android versions",
+    "last 8 ChromeAndroid versions",
+    "last 8 FirefoxAndroid versions",
+    "last 10 iOS versions",
+    "last 5 Opera versions"
+  ],
+  "engines": {
+    "node": ">= 10.18.1",
+    "npm": ">= 6.13.4",
+    "yarn": ">= 1.21.1"
+  }
+}

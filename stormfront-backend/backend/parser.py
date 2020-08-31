@@ -37,7 +37,6 @@ class SSProcessor:
             "microsoft.storage/storageaccounts": self._parseStorageAccount,
             "microsoft.web/serverfarms": self._parseServerFarm,
             "microsoft.web/sites": self._parseWebsite,
-            # "microsoft.classiccompute/domainnames": self._parseDomainNames,
             "microsoft.servicebus/namespaces": self._parseServiceBus,
         }
 
@@ -74,7 +73,7 @@ class SSProcessor:
         return {**resource_attrs, **resource_props}
 
     async def _parseObject(self, data: dict, fields: List[str], label: str) -> dict:
-        parsed = {f: data.get(f) for f in fields}
+        parsed = {f.split("@")[0]: data.get(f) for f in fields}
         parsed["raw"] = orjson.dumps(data).decode()
         parsed["type"] = label
 
@@ -86,23 +85,31 @@ class SSProcessor:
             elif isinstance(dataTags, list):
                 tags.append(dataTags)
 
+        if dn := parsed.get("displayName"):
+            parsed["name"] = dn
+            del parsed["displayName"]
+
+        if dn := parsed.get("display_name"):
+            parsed["name"] = dn
+            del parsed["display_name"]
+
         parsed["tags"] = tags
         return parsed
 
     @logger.catch
     async def _processAADUser(self, user: dict):
-        u_fields = [
-            "objectId",
-            "userPrincipalName",
-            "onPremisesSecurityIdentifier",
-            "lastPasswordChangeDateTime",
-            "mail",
-            "accountEnabled",
-            "immutableId",
-            "dirSyncEnabled",
-        ]
+        # u_fields = [
+        #     "objectId",
+        #     "userPrincipalName",
+        #     "onPremisesSecurityIdentifier",
+        #     "lastPasswordChangeDateTime",
+        #     "mail",
+        #     "accountEnabled",
+        #     "immutableId",
+        #     "dirSyncEnabled",
+        # ]
 
-        parsed = await self._parseObject(user, u_fields, AADUSER_NODE_LABEL)
+        parsed = await self._parseObject(user, user.keys(), AADUSER_NODE_LABEL)
         post_user = await self._postProcessResource(parsed)
         self.neo.insert_asset(
             post_user, AADOBJECT_NODE_LABEL, post_user["objectId"], [AADUSER_NODE_LABEL]
@@ -110,18 +117,18 @@ class SSProcessor:
 
     @logger.catch
     async def _processAADGroup(self, group: dict):
-        g_fields = [
-            "objectId",
-            "description",
-            "mail",
-            "dirSyncEnabled",
-            "securityEnabled",
-            "membershipRule",
-            "membershipRuleProcessingState",
-            "onPremisesSecurityIdentifier",
-        ]
+        # g_fields = [
+        #     "objectId",
+        #     "description",
+        #     "mail",
+        #     "dirSyncEnabled",
+        #     "securityEnabled",
+        #     "membershipRule",
+        #     "membershipRuleProcessingState",
+        #     "onPremisesSecurityIdentifier",
+        # ]
 
-        parsed = await self._parseObject(group, g_fields, AADGROUP_NODE_LABEL)
+        parsed = await self._parseObject(group, group.keys(), AADGROUP_NODE_LABEL)
         post_group = await self._postProcessResource(parsed)
         self.neo.insert_asset(
             post_group,
@@ -148,16 +155,16 @@ class SSProcessor:
 
     @logger.catch
     async def _parseAADApplication(self, app: dict):
-        a_fields = [
-            "objectId",
-            "appId",
-            "homepage",
-            "keyCredentials",
-            "passwordCredentials",
-            "publisherDomain",
-        ]
+        # a_fields = [
+        #     "objectId",
+        #     "appId",
+        #     "homepage",
+        #     "keyCredentials",
+        #     "passwordCredentials",
+        #     "publisherDomain",
+        # ]
 
-        parsed = await self._parseObject(app, a_fields, AADAPP_NODE_LABEL)
+        parsed = await self._parseObject(app, app.keys(), AADAPP_NODE_LABEL)
         parsed["passwordCredentialCount"] = len(app.get("passwordCredentials", 0))
         parsed["keyCredentialCount"] = len(app.get("keyCredentials", 0))
         post_app = await self._postProcessResource(parsed)
@@ -175,21 +182,21 @@ class SSProcessor:
 
     @logger.catch
     async def _parseAADServicePrincipal(self, spn: dict):
-        sp_fields = [
-            "appDisplayName",
-            "objectId",
-            "appId",
-            "accountEnabled",
-            "servicePrincipalNames",
-            "homepage",
-            "passwordCredentials",
-            "keyCredentials",
-            "appOwnerTenantId",
-            "publisherName",
-            "microsoftFirstParty",
-        ]
+        # sp_fields = [
+        #     "appDisplayName",
+        #     "objectId",
+        #     "appId",
+        #     "accountEnabled",
+        #     "servicePrincipalNames",
+        #     "homepage",
+        #     "passwordCredentials",
+        #     "keyCredentials",
+        #     "appOwnerTenantId",
+        #     "publisherName",
+        #     "microsoftFirstParty",
+        # ]
 
-        parsed = await self._parseObject(spn, sp_fields, AADSPN_NODE_LABEL)
+        parsed = await self._parseObject(spn, spn.keys(), AADSPN_NODE_LABEL)
         parsed["passwordCredentialCount"] = len(spn.get("passwordCredentials", 0))
         parsed["keyCredentialCount"] = len(spn.get("keyCredentials", 0))
         post_spn = await self._postProcessResource(parsed)
@@ -494,14 +501,19 @@ class SSProcessor:
 
     @logger.catch
     async def _parseRbac(self, rbac: dict):
+        rbac_props = rbac["permissions"][0]
+        rbac_props["roleName"] = rbac["roleName"]
+        rbac_props["roleType"] = rbac["roleType"]
+        rbac_props["roleDescription"] = rbac["roleDescription"]
+
         self.neo.create_relationship(
             rbac["principal_id"],
             AADOBJECT_NODE_LABEL,
             rbac["scope"],
             GENERIC_NODE_LABEL,
-            HAS_RBAC,
-            relationship_properties=rbac["permissions"][0],
-            relationship_unique_value=rbac["id"],
+            "".join(rbac["roleName"].split()),
+            relationship_properties=rbac_props,
+            relationship_unique_property=rbac["id"],
         )
 
     @logger.catch
@@ -599,7 +611,7 @@ class SSProcessor:
             )
         else:
             self.neo.create_relationship(
-                resource_group,
+                rgroup,
                 RESOURCEGROUP_NODE_LABEL,
                 post_db["id"],
                 SQLDATABASE_NODE_LABEL,
@@ -747,4 +759,7 @@ class SSProcessor:
             await asyncio.gather(*[self.process_sqlite(s) for s in sqlite_files])
 
             shutil.rmtree(tempdir)
+
+        # This is to deal with unknown objects that resulted from enumerated objects
+        self.neo.query("MATCH (n) WHERE n.name IS NULL SET n.name = n.id")
         logger.info(f"Completed ingestion of {filename}")

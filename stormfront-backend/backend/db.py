@@ -168,11 +168,11 @@ class Neo4j:
         except ClientError as e:
             if str(e.message).startswith("An equivalent index"):
                 raise
-            logger.debug(statement)
+            logger.error(e)
             logger.error("[=] Failed to insert new document. Trying again.")
             self.get_graph_driver(self.server, self.user, self.password)
             self.session.run(statement)
-            raise
+
         finally:
             self.write_lock.release()
             if result and requested:
