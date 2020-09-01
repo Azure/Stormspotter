@@ -96,16 +96,11 @@ def main():
 
     # SPN AUTH #
     spnParser = authParser.add_parser("spn", parents=[parentParser])
+    spnParser.add_argument("--clientid", "-c", required=True, help="Client ID")
+    spnParser.add_argument("--secret", "-s", required=True, help="Client Secret")
     spnParser.add_argument(
-        "--clientid", "-c", metavar="", required=True, help="Client ID"
+        "--tenantid", "-t", required=True, help="Tenant ID",
     )
-    spnParser.add_argument(
-        "--secret", "-s", metavar="", required=True, help="Client Secret"
-    )
-    spnParser.add_argument(
-        "--tenantid", "-t", metavar="", required=True, help="Tenant ID",
-    )
-
     spnParser.set_defaults(get_creds=Context.auth)
 
     args = parser.parse_args()

@@ -95,6 +95,20 @@ class AADApplication(AADObject):
 
 
 @dataclass
+class AADRole(AADObject):
+    resource = "directoryRoles"
+
+    async def parse(self, value):
+        members = await self.expand(value.get("objectId"), "members")
+        member_ids = [
+            member.get("objectId") or member.get("id") for member in members["value"]
+        ]
+        value["members"] = member_ids
+
+        return value
+
+
+@dataclass
 class AADGroup(AADObject):
     resource: str = "groups"
 

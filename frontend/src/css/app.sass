@@ -1,0 +1,96 @@
+// app global css in Sass form
+
+@font-face
+  font-family: "CascadiaMono"
+  src: url("../assets/CascadiaMono.ttf")
+
+*
+  font-family: CascadiaMono
+
+body
+  background-color: black !important
+  overflow: hidden
+
+#q-app,
+  width: 100vw !important
+  height: 100vh !important
+
+#cyto, #cytoscape-div
+  width: 100vw !important
+  height: 100vh !important
+  background-color: #02000f
+
+#dropdown-query
+  top: 0
+  left: 0
+  position: absolute
+  z-index: 9999
+
+#info-tabs
+  position: absolute
+  top: 0
+  right: 0
+  font-family: CascadiaMono
+  width: 500px
+
+#menu-bar
+  position: absolute
+  bottom: 0
+  left: 0
+  z-index: 9999
+
+#query-search-div
+  width: 500px
+  color: #fff
+
+#query-search
+  color: #ffffff
+
+input[type="text"]
+  color: #fff
+
+.q-list .q-hoverable:hover > .q-focus-helper
+  opacity: 0 !important
+  transition: unset !important
+
+.q-table td, .q-table th
+  white-space: normal !important
+
+.fade-enter-active,
+.fade-leave-active
+  transition: opacity 1.5s ease .1s
+  background: black
+
+.fade-enter,
+.fade-leave-active
+  opacity: 0
+
+.primary-bg
+  background-color: $primary
+  border-color: #616161
+
+.accent-bg
+  background-color: $accent
+  border-color: #616161
+
+.secondary-bg
+  background-color: $secondary
+  border-color: #616161
+
+.hide-scroll
+  -ms-overflow-style: none
+  scrollbar-width: none
+
+.hide-scroll::-webkit-scrollbar
+  display: none
+
+.bg-separator-white,table, th, td
+  // border-bottom-color: white
+  border-bottom: 1px solid #b4b4b4
+
+.input-border-bluegrey
+  border-bottom: 1px solid $blue-grey-7
+  border-radius: 2px
+
+.text-negative,.q-field__messages
+  color: $red-7 !important
