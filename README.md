@@ -1,10 +1,8 @@
 <p align="center">
-    <img src="misc/stormspotter.png" /><br>
-    <img src="https://img.shields.io/badge/Version-1.0.0a-red" />
+    <img src="docs/stormspotter.png" /><br>
+    <img src="https://img.shields.io/badge/Version-1.0.0b-red" />
     <img src="https://img.shields.io/badge/python-3.8-success" />
 </p>
-
-# Stormspotter
 
 Stormspotter creates an “attack graph” of the resources in an Azure subscription. It enables red teams and pentesters to visualize the attack surface and pivot opportunities within a tenant, and supercharges your defenders to quickly orient and prioritize incident response work.
 
@@ -12,81 +10,86 @@ It needs reader access to the subscription you wish to import and/or Directory.R
 
 ---
 
-## Getting Started
+# Installation
 
-### Prerequisites
+First things first:
 
-- Stormspotter is developed in Python 3.8.
-- Install [Neo4j](https://neo4j.com/download/). Currently, neo4j 4.0 may cause errors when launching Stormdash if you do not manually configure it with an SSL cert. Installation directions for your preferred operating system are located [here](https://neo4j.com/docs/operations-manual/current/installation/), although you may prefer the ease of a docker container:
+`git clone https://github.com/Azure/Stormspotter`
+
+## With Docker
+
+Most users may find it easier to install Stormspotter via Docker.
+
+`docker-compose up`
+
+The `docker-compose` file will create two containers:
+
+- Stormspotter
+- Neo4j v4
+
+By default, the Stormspotter container will expose the UI on port 9091. The neo4j container will expose neo4j on ports 7473 (HTTPS), 7474 (HTTP), and 7687 (Bolt). Default configuration of Neo4j does not have SSL enabled, therefore you may initially interact directly with the neo4j interface on port 7474.
+
+## Without Docker
+
+If you choose to run Stormspotter without Docker, you must have Python 3.8 and npm installed.
+
+### Backend
+
+The backend handles parsing data into Neo4j is built with [FastAPI](https://fastapi.tiangolo.com/). If you don't plan on uploading new content for the database, you may not need to run the backend at all. The backend is configured to run on port 9090. You may change this by changing the port number on line 5 of [app.py](stormfront-backend/app.py). If you do, you must also change the port in the Q-Uploader component in the [DatabaseView Component](stormfront/src/components/DatabaseView.vue) so that the uploads from the frontend get sent to the correct port where the backend resides.
 
 ```
-docker run --name stormspotter -p7474:7474 -p7687:7687 -d --env NEO4J_AUTH=neo4j/[password] neo4j:3.5.18
+cd dist
+python3 ssbackend.pyz
 ```
 
-## Running Stormspotter
+### Web App
 
-In order to avoid conflicting packages, it is highly recommended to run Stormspotter in a virtual environment.
+The web app is developed using [Vue](https://vuejs.org/) and the [Quasar Framework](https://quasar.dev/). The single-page app (SPA) has been built for you and resides in `frontend/dist/spa`. To serve this directory:
 
-1. Install the requirements
+```
+npm install -g @quasar/cli
+cd dist/spa
+quasar serve -p 9091 --history
+```
 
-   - From the repository (**RECOMMENDED**)
+You can then visit http://localhost:9091 in your browser.
 
-   ```
-   git clone https://github.com/Azure/Stormspotter
-   cd Stormspotter
-   pipenv install .
-   ```
+# Running Stormspotter
 
-   - Via pipenv
+### Stormcollector
 
-   ```
-   python -m pip install pipenv
-   pipenv install stormspotter==1.0.0a0
-   ```
+Stormcollector is the portion of Stormspotter that allows you to enumerate the subscriptions the provided credentials have access to. The **_RECOMMENDED_** way to use Stormcollector is to run the `stormcollector/sscollector.pyz` package. This PYZ has been created with [Shiv](https://github.com/linkedin/shiv) and comes with all the packages already zipped up! The dependencies will extract themselves to a `.shiv` folder in the user's home directory.
 
-#### Providing credentials
+```
+cd dist
+python3 sscollector.pyz -h
+```
+
+If you don't want to use the provided package, you may install the required packages in `pyproject.toml` with `pip`. It's highly recommended to install Stormcollector in a virtual environment to prevent package conflicts.
+
+```
+cd stormcollector
+python3 -m pip install .
+python3 ./sscollector.py
+```
 
 Current login types supported:
 
 - Azure CLI (must use `az login` first)
 - Service Principal Client ID/Secret
 
-#### Gather and view resources
+You can check out all of the options Stormcollector offers by using the `-h` switch as shown above. The most basic usages of Stormcollector are:
 
-1. Run stormspotter to gather resource and object information
+```
+python3 sscollector.pyz cli
+python3 sscollector.pyz spn -t <tenant> -c <clientID> -s <clientSecret>
+```
 
-   - Via CLI login
-
-   ```
-   stormspotter --cli
-   ```
-
-   - Via Service Principal
-
-   ```
-   stormspotter --service-principal -u <client id> -p <client secret> -t <tenant id>
-   ```
-
-2. Run stormdash to launch dashboard
-
-   ```
-   stormdash -dbu <neo4j-user> -dbp <neo4j-pass>
-   ```
-
-3. During installation, a `.stormspotter` folder is created in the user's home directory. Place the results zip file into `~/.stormspotter/input` folder. You may also place the zip file into the folder before running `stormdash` and it will be processed when Stormspotter starts. When a file is successfully processed, it will be moved into `~/.stormspotter/processed`.
-
-4. Browse to http://127.0.0.1:8050 to interact with the graph.
+Some interesting options include `--aad` and `--arm`, which offer the options to only enumerate Azure AD or Azure Resource Manager.
 
 ## Notes
 
-- With Stormspotter currently in alpha, not all resource types have been implemented in Stormdash. You may see labels with missing icons and/or simply display the "name" and "type" fields. You can still view the data associated with these assets by clicking the "Raw Data" slider. Over time, more resources will be properly implemented.
-- The node expansion feature has not been implemented yet. This feature will allow you to interact with a node to see all of its relations. As an fallback to Stormdash, you can visit the Neo4J instance directly to use this feature.
-
-# Screenshots
-
-![Screenshot1](misc/screenshot1.png)
-![Screenshot2](misc/screenshot2.png)
-![Screenshot3](misc/screenshot3.png)
+- With Stormspotter currently in beta, not all resource types have been implemented. You may see labels with missing icons and/or simply display the "name" and "id" fields. Over time, more resources will be properly implemented.
 
 # Contributing
 
