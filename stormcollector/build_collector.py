@@ -92,6 +92,5 @@ if __name__ == "__main__":
         pass
     finally:
         shutil.rmtree("app")
-        os.remove(PYZ_NAME)
     # compile()
     # finalize()
