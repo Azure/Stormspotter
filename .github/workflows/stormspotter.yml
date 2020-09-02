@@ -1,10 +1,33 @@
 name: Stormspotter Build
 
-on: [push]
+ push:
+    branches:    
+      - main
+    tags:        
+      - v* 
 
 jobs:
+  create_release:
+    name: Create release
+    runs-on: ubuntu-latest
+    # Note this. We are going to use that in further jobs.
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - name: Create release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
   build:
     name: Stormspotter Build on ${{ matrix.os }}
+    needs: create_release
     runs-on: ${{ matrix.os }}
     strategy:
       max-parallel: 4
@@ -32,7 +55,7 @@ jobs:
         run: |
           python build_backend.py
 
-      - name: Upload package
+      - name: Upload artifact
         uses: actions/upload-artifact@master
         with:
           name: stormspotter-${{ matrix.os }}
@@ -41,3 +64,21 @@ jobs:
             stormcollector/sscollector.py
             stormcollector/cloud.cfg
             frontend/dist/spa/
+
+      - name: Download artifact
+      - uses: actions/download-artifact@v2
+        with:
+          name: stormspotter-${{ matrix.os }}
+
+      - name: Upload release assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_name: stormspotter-${{ matrix.os }}
+          # The path to the file you want to upload.
+          asset_path: stormspotter-${{ matrix.os }}.zip
+          # probably you will need to change it, but most likely you are
+          # uploading a binary file
+          asset_content_type: application/octet-stream
