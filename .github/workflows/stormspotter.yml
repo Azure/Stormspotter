@@ -1,7 +1,7 @@
 name: Stormspotter Build
 
 env:
-  VERSION: v1.0.0b
+  VERSION: ${{ github.event.release.tag_name }}
 
 on:
   push:
