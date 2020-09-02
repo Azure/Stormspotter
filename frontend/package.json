@@ -10,7 +10,7 @@
     "test": "echo \"No test specified\" && exit 0"
   },
   "dependencies": {
-    "@quasar/extras": "^1.0.0",
+    "@quasar/extras": "^1.9.5",
     "axios": "^0.18.1",
     "core-js": "^3.6.5",
     "cytoscape-cola": "^2.4.0",
@@ -20,13 +20,15 @@
     "cytoscape-klay": "^3.1.3",
     "flush-promises": "^1.0.2",
     "lodash": "^4.17.20",
-    "quasar": "^1.0.0",
+    "quasar": "^1.13.2",
     "vue-codemirror": "^4.0.6",
     "vue-cytoscape": "^1.0.8",
-    "vue-neo4j": "^0.4.5"
+    "vue-loader": "^15.9.3",
+    "vue-neo4j": "^0.4.5",
+    "bl": "^4.0.3"
   },
   "devDependencies": {
-    "@quasar/app": "^2.0.0",
+    "@quasar/app": "^2.0.9",
     "babel-eslint": "^10.0.1",
     "devtron": "^1.4.0",
     "electron": "^9.2.1",
