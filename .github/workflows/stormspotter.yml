@@ -37,6 +37,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
       - name: Setup Python on ${{ matrix.os }}
         uses: actions/setup-python@v1
         with:
@@ -67,7 +68,7 @@ jobs:
             frontend/dist/spa/
 
       - name: Download artifact
-      - uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v2
         with:
           name: stormspotter-${{ matrix.os }}
 
