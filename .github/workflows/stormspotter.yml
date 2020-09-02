@@ -40,3 +40,4 @@ jobs:
             backend/ssbackend.pyz
             stormcollector/sscollector.py
             stormcollector/cloud.cfg
+            frontend/dist/spa/
