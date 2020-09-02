@@ -27,6 +27,8 @@ The `docker-compose` file will create three containers:
 
 By default, the Stormspotter container will expose the UI on port 9091. The neo4j container will expose neo4j on ports 7474 (HTTP), and 7687 (Bolt). Default configuration of Neo4j does not have SSL enabled, therefore you may initially interact directly with the neo4j interface on port 7474.
 
+The default credentials for neo4j are: **neo4j/password**. You can change this in the `docker-compose` file via the NEO4JAUTH environment variable.
+
 ## Without Docker
 
 If you choose to run Stormspotter without Docker, you must have [Python 3.8](https://www.python.org/downloads/), [NodeJS/npm](https://www.npmjs.com/get-npm), and [Neo4j](https://neo4j.com/docs/operations-manual/current/installation/) installed. You can also grab the latest Stormspotter releases from [here](https://github.com/Azure/Stormspotter/releases).
@@ -95,6 +97,10 @@ python3 sscollector.pyz spn -t <tenant> -c <clientID> -s <clientSecret>
 - **--json**: Convert SQLite output to JSON (**WARNING: STORMSPOTTER ONLY PARSES SQLITE FORMAT** )
   - This option is useful if you want to parse the output for reasons other than Stormspotter.
 - **--ssl-cert**: Specify an SSL cert for Stormcollector to use for requests. Not a common option
+
+**Uploading Results**
+
+Once you've started up the UI, you will see a section in the database tab labeled "Stormcollector Upload". Add your file to this uploader and the processing will begin. As the results get processed, you can check the backend logs to view progress, and the results should also be reflected in the same Database View tab.
 
 # Notes
 
