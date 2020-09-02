@@ -77,7 +77,7 @@ def main():
     parentParser.add_argument(
         "--nosubs",
         nargs="+",
-        help="Subscriptions you wish to exclude from scanning. Multiple subscriptions can be added as a space deliminated list --nosubs subid1 subid2",
+        help="Subscriptions you wish to exclude from scanning. Multiple subscriptions can be excluded as a space deliminated list --nosubs subid1 subid2",
     )
 
     parentParser.add_argument(
@@ -85,7 +85,9 @@ def main():
     )
 
     parentParser.add_argument(
-        "--ssl-cert", help="Convert sqlite output to json", type=argparse.FileType("r")
+        "--ssl-cert",
+        help="SSL Cert to use for HTTP requests",
+        type=argparse.FileType("r"),
     )
 
     parser = argparse.ArgumentParser()
