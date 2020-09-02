@@ -18,6 +18,11 @@ jobs:
         with:
           python-version: 3.8
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: "12.x"
+
       - name: Install Shiv
         run: |
           pip install shiv
@@ -31,6 +36,12 @@ jobs:
         working-directory: backend
         run: |
           python build_backend.py
+
+      - name: Build SSFrontend
+        working-directory: frontend
+        run: |
+          npm ci
+          quasar build
 
       - name: Upload package
         uses: actions/upload-artifact@master
