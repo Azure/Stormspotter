@@ -39,6 +39,7 @@ If you choose to run Stormspotter without Docker, you must have [Python 3.8](htt
 The backend handles parsing data into Neo4j is built with [FastAPI](https://fastapi.tiangolo.com/). If you don't plan on uploading new content for the database, you may not need to run the backend at all. The backend is configured to run on port 9090. You may change this by changing the port number on line 5 of [app.py](stormfront-backend/app.py). If you do, you must also change the port in the Q-Uploader component in the [DatabaseView Component](stormfront/src/components/DatabaseView.vue) so that the uploads from the frontend get sent to the correct port where the backend resides.
 
 ```
+cd backend
 python3 ssbackend.pyz
 ```
 
@@ -61,6 +62,7 @@ You can then visit http://localhost:9091 in your browser.
 Stormcollector is the portion of Stormspotter that allows you to enumerate the subscriptions the provided credentials have access to. The **_RECOMMENDED_** way to use Stormcollector is to run the `sscollector.pyz` package. This PYZ has been created with [Shiv](https://github.com/linkedin/shiv) and comes with all the packages already zipped up! The dependencies will extract themselves to a `.shiv` folder in the user's home directory.
 
 ```
+cd stormcollector
 python3 sscollector.pyz -h
 ```
 
@@ -87,15 +89,15 @@ python3 sscollector.pyz spn -t <tenant> -c <clientID> -s <clientSecret>
 
 **Common options for all authentication types**
 
-- --cloud: Specify a different Azure Cloud (GERMAN, CHINA, USGOV)
-- --config: Specify a custom configuration for cloud environments
-- --azure: Only enumerate Azure Resource Manager resources
-- --aad: Only enumerate Azure Active Directory
-- --subs: Subscriptions you wish to scan. Multiple subscriptions can be added as a space deliminated list.
-- --nosubs: Subscriptions you wish to exclude. Multiple subscriptions can be excluded as a space deliminated list.
-- --json: Convert SQLite output to JSON (**WARNING**: CANNOT UPLOAD JSON OUTPUT TO STORMSPOTTER)
+- **--cloud**: Specify a different Azure Cloud (GERMAN, CHINA, USGOV)
+- **--config**: Specify a custom configuration for cloud environments
+- **--azure**: Only enumerate Azure Resource Manager resources
+- **--aad**: Only enumerate Azure Active Directory
+- **--subs**: Subscriptions you wish to scan. Multiple subscriptions can be added as a space deliminated list.
+- **--nosubs**: Subscriptions you wish to exclude. Multiple subscriptions can be excluded as a space deliminated list.
+- **--json**: Convert SQLite output to JSON (**WARNING: STORMSPOTTER ONLY PARSES SQLITE FORMAT** )
   - This option is useful if you want to parse the output for reasons other than Stormspotter.
-- --ssl-cert: Specify an SSL cert for Stormcollector to use for requests. Not a common option
+- **--ssl-cert**: Specify an SSL cert for Stormcollector to use for requests. Not a common option
 
 # Notes
 
