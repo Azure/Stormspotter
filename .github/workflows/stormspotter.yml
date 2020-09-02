@@ -1,8 +1,5 @@
 name: Stormspotter Build
 
-env:
-  VERSION: ${{ github.event.release.tag_name }}
-
 on:
   push:
     tags:
@@ -21,8 +18,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ env.VERSION }}
-          release_name: Stormspotter ${{ env.VERSION }}
+          tag_name: ${{ github.event.release.tag_name }}
+          release_name: Stormspotter ${{ github.event.release.tag_name }}
           draft: false
           prerelease: false
 
