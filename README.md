@@ -98,6 +98,9 @@ python3 sscollector.pyz spn -t <tenant> -c <clientID> -s <clientSecret>
   - This option is useful if you want to parse the output for reasons other than Stormspotter.
 - **--ssl-cert**: Specify an SSL cert for Stormcollector to use for requests. Not a common option
 
+**Uploading Results**
+Once you've started up the UI, you will see a section in the database tab labeled "Stormcollector Upload". Add your file to this uploader and the processing will begin. As the results get processed, you can check the backend logs to view progress, and the results should also be reflected in the same Database View tab.
+
 # Notes
 
 - With Stormspotter currently in beta, not all resource types have been implemented for display. You may see labels with missing icons and/or simply display the "name" and "id" fields. Over time, more resources will be properly implemented.
