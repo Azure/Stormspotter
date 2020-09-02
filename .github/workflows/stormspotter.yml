@@ -18,8 +18,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.event.release.tag_name }}
-          release_name: Stormspotter ${{ github.event.release.tag_name }}
+          tag_name: ${{ github.ref }}
+          release_name: Stormspotter ${{ github.ref }}
           draft: false
           prerelease: false
 
