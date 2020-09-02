@@ -27,3 +27,28 @@ jobs:
         with:
           name: stormcollector-${{ matrix.os }}
           path: stormcollector/stormcollector.zip
+
+  build:
+    name: Stormspotter-Backend Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      max-parallel: 4
+      matrix:
+        os: [ubuntu-latest, macOS-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Python on ${{ matrix.os }}
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+      - name: Build binaries with Shiv
+        working-directory: backend
+        run: |
+          pip install shiv
+          python build_backend.py
+      - name: Upload stormspotter-backend
+        uses: actions/upload-artifact@master
+        with:
+          name: ssbackend-${{ matrix.os }}
+          path: backend/ssbackend.pyz
