@@ -14,7 +14,6 @@ on:
 jobs:
   create_release:
     name: Create release
-    continue-on-error: true
     runs-on: ubuntu-latest
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
