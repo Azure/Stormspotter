@@ -6,21 +6,18 @@
 
 Stormspotter creates an “attack graph” of the resources in an Azure subscription. It enables red teams and pentesters to visualize the attack surface and pivot opportunities within a tenant, and supercharges your defenders to quickly orient and prioritize incident response work.
 
-It needs reader access to the subscription you wish to import and/or Directory.Read access to the Azure AD tenants.
-
 ---
 
 # Installation
 
-First things first:
-
-`git clone https://github.com/Azure/Stormspotter`
-
 ## With Docker
 
-Most users may find it easier to install Stormspotter via Docker.
+Most users may find it easier to install Stormspotter via Docker. This is the recommended method.
 
-`docker-compose up`
+```
+git clone https://github.com/Azure/Stormspotter
+docker-compose up
+```
 
 The `docker-compose` file will create three containers:
 
