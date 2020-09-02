@@ -88,9 +88,6 @@ def build():
 if __name__ == "__main__":
     try:
         build()
-        with zipfile.ZipFile("stormcollector.zip", "w", zipfile.ZIP_DEFLATED) as zip:
-            zip.write(PYZ_NAME)
-            zip.write("cloud.cfg")
     except:
         pass
     finally:

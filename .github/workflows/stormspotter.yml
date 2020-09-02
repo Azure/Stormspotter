@@ -32,14 +32,11 @@ jobs:
         run: |
           python build_backend.py
 
-      - name: Upload backend
+      - name: Upload package
         uses: actions/upload-artifact@master
         with:
-          name: ssbackend-${{ matrix.os }}
-          path: backend/ssbackend.pyz
-
-      - name: Upload stormcollector
-        uses: actions/upload-artifact@master
-        with:
-          name: stormcollector-${{ matrix.os }}
-          path: stormcollector/stormcollector.zip
+          name: stormspotter-${{ matrix.os }}
+          path: |
+            backend/ssbackend.pyz
+            stormcollector/sscollector.py
+            stormcollector/cloud.cfg
