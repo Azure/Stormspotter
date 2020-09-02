@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "backend"
+version = "1.0.0b"
+description = ""
+authors = ["Leron Gray <legra@microsoft.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+fastapi = "^0.61.0"
+uvicorn = "^0.11.8"
+neo4j = "^4.1.0"
+aiosqlite = "^0.15.0"
+orjson = "^3.3.0"
+aiofiles = "^0.5.0"
+loguru = "^0.5.1"
+python-multipart = "^0.0.5"
+shiv = "^0.3.0"
+
+[tool.poetry.dev-dependencies]
+black = "^19.10b0"
+isort = "^5.4.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0a5"]
+build-backend = "poetry.core.masonry.api"

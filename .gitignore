@@ -10,6 +10,7 @@ __pycache__/
 build/
 develop-eggs/
 dist/
+!frontend/dist/
 downloads/
 eggs/
 .eggs/
@@ -23,6 +24,7 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
+.ionide/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -111,3 +113,6 @@ stub.exe
 test_*
 .vscode/
 .DS_Store
+results*/
+stormcollector.zip
+sscollector.pyz

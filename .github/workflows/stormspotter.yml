@@ -1,0 +1,76 @@
+name: Stormspotter Build
+
+env:
+  VERSION: v1.0.0b
+
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  create_release:
+    name: Create release
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - name: Create release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.VERSION }}
+          release_name: Stormspotter ${{ env.VERSION }}
+          draft: false
+          prerelease: false
+
+  build:
+    name: Stormspotter Build on ${{ matrix.os }}
+    needs: create_release
+    runs-on: ${{ matrix.os }}
+    strategy:
+      max-parallel: 4
+      matrix:
+        os: [ubuntu-latest, macOS-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Python on ${{ matrix.os }}
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+
+      - name: Install Shiv
+        run: |
+          pip install shiv
+
+      - name: Build Stormcollector
+        working-directory: stormcollector
+        run: |
+          python build_collector.py
+
+      - name: Build SSBackend
+        working-directory: backend
+        run: |
+          python build_backend.py
+
+      - name: Create Zip File
+        shell: bash
+        run: |
+          7z a -tzip "stormspotter-${{ matrix.os }}.zip" "backend/ssbackend.pyz" "stormcollector/sscollector.py" "stormcollector/cloud.cfg" "frontend/dist/spa/"
+
+      - name: Upload release assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_name: stormspotter-${{ matrix.os }}.zip
+          # The path to the file you want to upload.
+          asset_path: stormspotter-${{ matrix.os }}.zip
+          # probably you will need to change it, but most likely you are
+          # uploading a binary file
+          asset_content_type: application/octet-stream
