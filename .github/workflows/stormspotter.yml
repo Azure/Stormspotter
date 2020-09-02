@@ -75,9 +75,8 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: stormspotter-${{ matrix.os }}
-        
-      - name: List files
-        run: ls -alR .
+          path: artifacts
+
 
       - name: Upload release assets
         uses: actions/upload-release-asset@v1
@@ -87,7 +86,7 @@ jobs:
           upload_url: ${{ needs.create_release.outputs.upload_url }}
           asset_name: stormspotter-${{ matrix.os }}
           # The path to the file you want to upload.
-          asset_path: stormspotter-${{ matrix.os }}.zip
+          asset_path: artifacts/stormspotter-${{ matrix.os }}.zip
           # probably you will need to change it, but most likely you are
           # uploading a binary file
           asset_content_type: application/octet-stream
