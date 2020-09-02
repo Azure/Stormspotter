@@ -1,17 +1,17 @@
 name: Stormspotter Build
 
-push:
-  branches:
-    - main
-    - dev-v*
-  tags:
-    - v*
+on:
+  push:
+    branches:
+      - main
+      - dev-v*
+    tags:
+      - v*
 
 jobs:
   create_release:
     name: Create release
     runs-on: ubuntu-latest
-    # Note this. We are going to use that in further jobs.
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
     steps:
