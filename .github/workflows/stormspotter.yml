@@ -26,4 +26,4 @@ jobs:
         uses: actions/upload-artifact@master
         with:
           name: stormcollector-${{ matrix.os }}
-          path: stormcollector.zip
+          path: stormcollector/stormcollector.zip
