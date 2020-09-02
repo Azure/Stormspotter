@@ -32,11 +32,14 @@ jobs:
         run: |
           python build_backend.py
 
-      - name: Upload artifacts
+      - name: Upload backend
         uses: actions/upload-artifact@master
         with:
           name: ssbackend-${{ matrix.os }}
           path: backend/ssbackend.pyz
+
+      - name: Upload stormcollector
+        uses: actions/upload-artifact@master
         with:
           name: stormcollector-${{ matrix.os }}
           path: stormcollector/stormcollector.zip
