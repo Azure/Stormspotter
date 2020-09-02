@@ -3,6 +3,7 @@ name: Stormspotter Build
  push:
     branches:    
       - main
+      - dev-v*
     tags:        
       - v* 
 
