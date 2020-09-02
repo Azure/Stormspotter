@@ -40,7 +40,7 @@ module.exports = function (ctx) {
     // Full list of options: https://quasar.dev/quasar-cli/quasar-conf-js#Property%3A-build
     build: {
       vueRouterMode: "history", // available values: 'hash', 'history'
-      distDir: `../dist/${ctx.modeName}`,
+      // distDir: `../dist/${ctx.modeName}`,
       // transpile: false,
 
       // Add dependencies for transpiling with Babel (Array of string/regex)
@@ -57,6 +57,9 @@ module.exports = function (ctx) {
       // Options below are automatically set depending on the env, set them if you want to override
       // extractCSS: false,
 
+      env: {
+        UPLOAD_URL: process.env.VUE_APP_UPLOAD_URL,
+      },
       // https://quasar.dev/quasar-cli/handling-webpack
       extendWebpack(cfg) {
         cfg.module.rules.push({

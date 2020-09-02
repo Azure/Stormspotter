@@ -27,7 +27,7 @@ class Neo4j:
     MERGE (from:{from_label}{{id:'{from_id}'}})  
     MERGE (from)-[obj:{relationship_type}{unique_rel_clause}]->(to) {set_statement}"""
 
-    def __init__(self, server="bolt://localhost:7687", user=None, password=None):
+    def __init__(self, server, user=None, password=None):
         self.server = server
         logger.info(f"Connecting to {self.server}")
         self.user = user
@@ -58,7 +58,7 @@ class Neo4j:
             auth = None
             if username and password:
                 auth = (username, password)
-            self.driver = GraphDatabase.driver(url, auth=auth)
+            self.driver = GraphDatabase.driver(url, auth=auth, encrypted=False)
         except AuthError:
             logger.error("Could not authenticate to Neo4j database server")
         except Exception:

@@ -47,7 +47,7 @@ def build():
     )
     create_archive(
         [Path("app").absolute()],
-        Path("../dist") / PYZ_NAME,
+        Path(PYZ_NAME),
         "/usr/bin/env python3",
         "_bootstrap:bootstrap",
         env,

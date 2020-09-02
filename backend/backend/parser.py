@@ -8,6 +8,7 @@ from typing import Any, List
 import aiofiles
 import aiosqlite
 import orjson
+import os
 from loguru import logger
 
 from .db import Neo4j
@@ -722,8 +723,13 @@ class SSProcessor:
         self, upload: SpooledTemporaryFile, filename: str, neo_user: str, neo_pass: str
     ):
 
-        # TODO: Pass whole neo4j params from frontend or use .env
-        self.neo = Neo4j(user=neo_user, password=neo_pass)
+        server = (
+            "bolt://stormspotter-neo4j:7687"
+            if os.environ.get("DOCKER_STORMSPOTTER")
+            else "bolt://localhost:7687"
+        )
+        # TODO: Pass whole neo4j params from frontend or use .env for server
+        self.neo = Neo4j(server=server, user=neo_user, password=neo_pass)
         if zipfile.is_zipfile(upload):
             self.status = f"Unzipping {filename}"
             tempdir = mkdtemp()

@@ -38,7 +38,7 @@ app.add_middleware(
 sshandler = SSProcessor()
 
 
-@app.post("/api/uploadfile")
+@app.post("/api/upload")
 async def process_upload(
     task: BackgroundTasks,
     x_neo4j_user: str = Header("neo4j"),

@@ -64,7 +64,7 @@
         no-thumbnails
         ref="uploader"
         style="width: 100%;"
-        url="http://localhost:9090/api/uploadfile"
+        url="http://localhost:9090/api/upload"
       >
       </q-uploader>
     </div>
@@ -76,7 +76,9 @@ import { mapState } from "vuex";
 
 export default {
   name: "DatabaseView",
-  computed: mapState(["currentNodeSummary"]),
+  computed: {
+    ...mapState(["currentNodeSummary"]),
+  },
   data() {
     return {
       refreshing: false,

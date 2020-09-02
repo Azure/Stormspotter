@@ -3,7 +3,7 @@ import uvicorn
 
 def main():
     uvicorn.run(
-        "backend.main:app", reload=False, host="127.0.0.1", port=9090,
+        "backend.main:app", reload=False, host="0.0.0.0", port=9090,
     )
 
 
