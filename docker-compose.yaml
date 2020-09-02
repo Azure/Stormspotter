@@ -27,7 +27,7 @@ services:
     networks:
       - stormspotter-network
     ports:
-      - 9091:80
+      - 9091:9091
 
   stormspotter-backend:
     build:
