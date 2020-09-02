@@ -1,5 +1,8 @@
 name: Stormspotter Build
 
+env:
+  VERSION: v1.0.0b
+
 on:
   push:
     branches:
@@ -21,8 +24,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          tag_name: ${{ env.VERSION }}
+          release_name: Stormspotter ${{ env.VERSION }}
           draft: false
           prerelease: false
 
@@ -80,7 +83,7 @@ jobs:
           upload_url: ${{ needs.create_release.outputs.upload_url }}
           asset_name: stormspotter-${{ matrix.os }}
           # The path to the file you want to upload.
-          asset_path: stormspotter-${{ matrix.os }}
+          asset_path: stormspotter-${{ matrix.os }}.zip
           # probably you will need to change it, but most likely you are
           # uploading a binary file
           asset_content_type: application/octet-stream
