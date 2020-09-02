@@ -74,6 +74,9 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: stormspotter-${{ matrix.os }}
+        
+      - name: List files
+        run: ls -alR .
 
       - name: Upload release assets
         uses: actions/upload-release-asset@v1
