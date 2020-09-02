@@ -56,7 +56,7 @@ def build():
     )
     create_archive(
         [Path("app").absolute()],
-        Path("../dist") / PYZ_NAME,
+        Path(PYZ_NAME),
         "/usr/bin/env python3",
         "_bootstrap:bootstrap",
         env,
@@ -88,10 +88,13 @@ def build():
 if __name__ == "__main__":
     try:
         build()
-        shutil.copy("cloud.cfg", "../dist/cloud.cfg")
+        with zipfile.ZipFile("stormcollector.zip", "w", zipfile.ZIP_DEFLATED) as zip:
+            zip.write(PYZ_NAME)
+            zip.write("cloud.cfg")
     except:
         pass
     finally:
         shutil.rmtree("app")
+        os.remove(PYZ_NAME)
     # compile()
     # finalize()

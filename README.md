@@ -27,7 +27,7 @@ The `docker-compose` file will create two containers:
 - Stormspotter
 - Neo4j v4
 
-By default, the Stormspotter container will expose the UI on port 9091. The neo4j container will expose neo4j on ports 7473 (HTTPS), 7474 (HTTP), and 7687 (Bolt). Default configuration of Neo4j does not have SSL enabled, therefore you may initially interact directly with the neo4j interface on port 7474.
+By default, the Stormspotter container will expose the UI on port 9091. The neo4j container will expose neo4j on ports 7474 (HTTP), and 7687 (Bolt). Default configuration of Neo4j does not have SSL enabled, therefore you may initially interact directly with the neo4j interface on port 7474.
 
 ## Without Docker
 
@@ -44,7 +44,7 @@ python3 ssbackend.pyz
 
 ### Web App
 
-The web app is developed using [Vue](https://vuejs.org/) and the [Quasar Framework](https://quasar.dev/). The single-page app (SPA) has been built for you and resides in `frontend/dist/spa`. To serve this directory:
+The web app is developed using [Vue](https://vuejs.org/) and the [Quasar Framework](https://quasar.dev/). The single-page app (SPA) has been built for you and resides in `dist/spa`. To serve this directory:
 
 ```
 npm install -g @quasar/cli
@@ -58,7 +58,7 @@ You can then visit http://localhost:9091 in your browser.
 
 ### Stormcollector
 
-Stormcollector is the portion of Stormspotter that allows you to enumerate the subscriptions the provided credentials have access to. The **_RECOMMENDED_** way to use Stormcollector is to run the `stormcollector/sscollector.pyz` package. This PYZ has been created with [Shiv](https://github.com/linkedin/shiv) and comes with all the packages already zipped up! The dependencies will extract themselves to a `.shiv` folder in the user's home directory.
+Stormcollector is the portion of Stormspotter that allows you to enumerate the subscriptions the provided credentials have access to. The **_RECOMMENDED_** way to use Stormcollector is to run the `sscollector.pyz` package. This PYZ has been created with [Shiv](https://github.com/linkedin/shiv) and comes with all the packages already zipped up! The dependencies will extract themselves to a `.shiv` folder in the user's home directory.
 
 ```
 cd dist
