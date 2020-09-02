@@ -5,9 +5,6 @@ env:
 
 on:
   push:
-    branches:
-      - main
-      - dev-v*
     tags:
       - v*
 
@@ -63,8 +60,8 @@ jobs:
       - name: Create Zip File
         shell: bash
         run: |
-            7z a -tzip "stormspotter-${{ matrix.os }}.zip" "backend/ssbackend.pyz" "stormcollector/sscollector.py" "stormcollector/cloud.cfg" "frontend/dist/spa/"
-          
+          7z a -tzip "stormspotter-${{ matrix.os }}.zip" "backend/ssbackend.pyz" "stormcollector/sscollector.py" "stormcollector/cloud.cfg" "frontend/dist/spa/"
+
       - name: Upload release assets
         uses: actions/upload-release-asset@v1
         env:
