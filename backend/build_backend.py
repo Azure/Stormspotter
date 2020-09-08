@@ -6,11 +6,9 @@ import subprocess
 import sys
 import time
 from datetime import datetime
-
 from pathlib import Path
 
 from shiv.bootstrap import Environment
-
 from shiv.builder import create_archive
 from shiv.cli import __version__ as VERSION
 
