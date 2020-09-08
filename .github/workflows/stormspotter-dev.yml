@@ -1,4 +1,4 @@
-name: Stormspotter Build
+name: Stormspotter Dev Build
 
 on:
   push:
