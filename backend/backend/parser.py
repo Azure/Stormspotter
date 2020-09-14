@@ -1,4 +1,5 @@
 import asyncio
+import os
 import shutil
 import zipfile
 from pathlib import Path
@@ -8,7 +9,6 @@ from typing import Any, List
 import aiofiles
 import aiosqlite
 import orjson
-import os
 from loguru import logger
 
 from .db import Neo4j

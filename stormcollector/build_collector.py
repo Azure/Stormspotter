@@ -51,13 +51,13 @@ def build():
         entry_point="main:main",
         script=None,
         compile_pyc=False,
-        extend_pythonpath=False,
+        extend_pythonpath=True,
         shiv_version=VERSION,
     )
     create_archive(
         [Path("app").absolute()],
         Path(PYZ_NAME),
-        "/usr/bin/env python3",
+        "/usr/bin/python3 -IS",
         "_bootstrap:bootstrap",
         env,
         True,

@@ -6,11 +6,9 @@ import subprocess
 import sys
 import time
 from datetime import datetime
-
 from pathlib import Path
 
 from shiv.bootstrap import Environment
-
 from shiv.builder import create_archive
 from shiv.cli import __version__ as VERSION
 
@@ -48,7 +46,7 @@ def build():
     create_archive(
         [Path("app").absolute()],
         Path(PYZ_NAME),
-        "/usr/bin/env python3",
+        "/usr/bin/python3 -IS",
         "_bootstrap:bootstrap",
         env,
         True,
