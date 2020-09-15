@@ -27,6 +27,8 @@ The `docker-compose` file will create three containers:
 
 By default, the Stormspotter container will expose the UI on port 9091. The neo4j container will expose neo4j on ports 7474 (HTTP), and 7687 (Bolt). Default configuration of Neo4j does not have SSL enabled, therefore you may initially interact directly with the neo4j interface on port 7474.
 
+**Note**: Currently, Stormspotter only supports running these containers locally. Attempting to upload to the frontend hosted remotely will be unsuccessful but this behavior is expected to change in the future.
+
 The default credentials for neo4j are: **neo4j/password**. You can change this in the `docker-compose` file via the NEO4JAUTH environment variable.
 
 ## Without Docker
@@ -105,6 +107,10 @@ Once you've started up the UI, you will see a section in the database tab labele
 # Notes
 
 - With Stormspotter currently in beta, not all resource types have been implemented for display. You may see labels with missing icons and/or simply display the "name" and "id" fields. Over time, more resources will be properly implemented.
+
+## Known Issues
+
+- Check for [known issues](https://github.com/Azure/Stormspotter/issues/24) before submitting one.
 
 # Screenshots
 
