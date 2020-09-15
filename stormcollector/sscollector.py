@@ -117,13 +117,16 @@ def main():
             SSL_CONTEXT = aiohttp.TCPConnector(ssl_context=sslcontext)
 
         asyncio.run(run(args))
-        logger.info("Zipping up output...")
-        shutil.make_archive(OUTPUT_FOLDER, "zip", OUTPUT_FOLDER)
+        logger.info(f"--- COMPLETE: {time.time() - start_time} seconds. ---")
+        if any(Path(OUTPUT_FOLDER).iterdir()):
+            logger.info("Zipping up output...")
+            shutil.make_archive(OUTPUT_FOLDER, "zip", OUTPUT_FOLDER)
+            logger.info(f"OUTPUT: {OUTPUT_FOLDER.absolute()}.zip")
+        else:
+            logger.warning("No output to create zip file!")
+
         shutil.rmtree(OUTPUT_FOLDER)
 
-        logger.info(
-            f"--- COMPLETE: {time.time() - start_time} seconds. OUTPUT: {OUTPUT_FOLDER.absolute()}.zip ---"
-        )
     else:
         parser.print_help()
 

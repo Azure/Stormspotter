@@ -76,7 +76,7 @@ class Context:
 
         except Exception as e:
             logger.warning(e)
-            return None
+            exit()
 
     @staticmethod
     def _get_resource_creds_from_spn(
@@ -97,7 +97,7 @@ class Context:
             ]
         except Exception as e:
             logger.warning(e)
-            return None
+            exit()
 
     @staticmethod
     async def auth(args: Namespace):
