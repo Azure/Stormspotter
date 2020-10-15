@@ -42,8 +42,9 @@ CLOUD_MAP = {
 
 class Context:
     def __init__(
-        self, cloud: dict, authenticatedCreds: Tuple[Any],
+        self, args: Namespace, cloud: dict, authenticatedCreds: Tuple[Any],
     ):
+        self.args = args
         self.cloud = cloud
         self.cred_sync, self.cred_async, self.cred_msrest = authenticatedCreds
 
@@ -59,6 +60,7 @@ class Context:
             custom["AD"] = cfg["ENDPOINTS"]["AD"]
             custom["AAD"] = cfg["ENDPOINTS"]["AD_Graph_ResourceId"]
             custom["GRAPH"] = cfg["ENDPOINTS"]["MS_Graph"]
+            custom["MGMT"] = cfg["ENDPOINTS"]["Management"]
             return custom
         return CLOUD_MAP[cloud]
 
@@ -100,7 +102,7 @@ class Context:
             exit()
 
     @staticmethod
-    async def auth(args: Namespace):
+    async def auth(args: Namespace, refresh=False):
         """Authenticate to AAD and/or ARM endpoints}"""
 
         # Minimize repeated code by calling functions dynamically
@@ -116,4 +118,7 @@ class Context:
         )
 
         authenticatedCreds.append(adaptedCred)
-        return Context(cloud, authenticatedCreds)
+        if refresh:
+            return authenticatedCreds
+
+        return Context(args, cloud, authenticatedCreds)

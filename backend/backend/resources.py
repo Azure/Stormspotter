@@ -37,7 +37,7 @@ VMSS_NODE_LABEL = "VMSS"
 WEBSITE_NODE_LABEL = "WebSite"
 
 # RELATIONSHIP TYPES
-APP_TO_SPN = "Instantiates"
+APP_TO_SPN = "RepresentedBy"
 ASSET_TO_CERT = "CanExtractCert"
 ASSET_TO_ENDPOINT_OR_IP = "Exposes"
 ASSET_TO_HSROLE = "ServerRole"

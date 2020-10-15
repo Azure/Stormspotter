@@ -179,9 +179,23 @@ class SSProcessor:
         self.neo.insert_asset(
             post_spn, AADOBJECT_NODE_LABEL, post_spn["objectId"], [AADSPN_NODE_LABEL]
         )
+
+        # TODO: Additional logic possibly needs to check appownertenantid
+        self.neo.create_relationship(
+            post_spn["appId"],
+            AADOBJECT_NODE_LABEL,
+            post_spn["objectId"],
+            AADSPN_NODE_LABEL,
+            APP_TO_SPN,
+        )
+
         for owner in spn["owners"]:
             self.neo.create_relationship(
-                owner, AADOBJECT_NODE_LABEL, spn["objectId"], AADSPN_NODE_LABEL, OWNER
+                owner,
+                AADOBJECT_NODE_LABEL,
+                post_spn["objectId"],
+                AADSPN_NODE_LABEL,
+                OWNER,
             )
 
     @logger.catch
