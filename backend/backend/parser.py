@@ -180,15 +180,6 @@ class SSProcessor:
             post_spn, AADOBJECT_NODE_LABEL, post_spn["objectId"], [AADSPN_NODE_LABEL]
         )
 
-        # TODO: Additional logic possibly needs to check appownertenantid
-        self.neo.create_relationship(
-            post_spn["appId"],
-            AADOBJECT_NODE_LABEL,
-            post_spn["objectId"],
-            AADSPN_NODE_LABEL,
-            APP_TO_SPN,
-        )
-
         for owner in spn["owners"]:
             self.neo.create_relationship(
                 owner,
@@ -755,6 +746,12 @@ class SSProcessor:
 
             shutil.rmtree(tempdir)
 
+        # Match SPNs with their apps
+        self.neo.query(
+            f"MATCH (sp:AADServicePrincipal) with sp MATCH (app:AADApplication{{appId:sp.appId}}) MERGE (app)-[:{APP_TO_SPN}]->(sp)"
+        )
+
         # This is to deal with unknown objects that resulted from enumerated objects
         self.neo.query("MATCH (n) WHERE n.name IS NULL SET n.name = n.id")
+
         logger.info(f"Completed ingestion of {filename}")
