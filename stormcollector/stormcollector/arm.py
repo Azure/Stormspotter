@@ -30,8 +30,8 @@ async def _query_resource(
         if "No registered resource provider found for location" in ex.message:
             invalid_versions.append(api_version)
             api_versions = re.search(
-                "The supported api-versions are '(.*?),", ex.message
-            ).groups()
+                "The supported api-versions are '(.*?)'. The supported locations", ex.message
+            ).groups()[0].split(', ')
             api_versions = list(
                 filter(lambda v: v not in invalid_versions, api_versions)
             )
