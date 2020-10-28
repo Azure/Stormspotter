@@ -39,7 +39,7 @@ async def _query_resource(
                 return await _query_resource(
                     client,
                     resource_id,
-                    api_version=api_versions[0],
+                    api_version=api_versions[-1],
                     invalid_versions=invalid_versions,
                 )
 
