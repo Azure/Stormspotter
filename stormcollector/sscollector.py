@@ -69,6 +69,12 @@ def main():
     )
 
     parentParser.add_argument(
+        "--tenants",
+        nargs="+",
+        help="Tenants you wish to scan. Multiple tenants can be added as a space deliminated list --tenants tenantid1 tenantid2",
+    )
+
+    parentParser.add_argument(
         "--subs",
         nargs="+",
         help="Subscriptions you wish to scan. Multiple subscriptions can be added as a space deliminated list --subs subid1 subid2",
@@ -90,7 +96,16 @@ def main():
         type=argparse.FileType("r"),
     )
 
+    parentParser.add_argument(
+        "--arm-api-version", help="Specifies the api-version to try first for arm calls", default="2020-06-01"
+    )
+
     parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "--verbose", "-v", help="Enable verbose logging", action="store_true"
+    )
+
     authParser = parser.add_subparsers(help="Methods of authentication", dest="auth")
 
     cliParser = authParser.add_parser("cli", parents=[parentParser])
@@ -106,6 +121,10 @@ def main():
     spnParser.set_defaults(get_creds=Context.auth)
 
     args = parser.parse_args()
+
+    logger.remove()
+    logger.add(sys.stderr, level='DEBUG' if args.verbose else 'INFO')
+
     if hasattr(args, "get_creds"):
         start_time = time.time()
 
