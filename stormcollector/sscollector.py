@@ -97,7 +97,7 @@ def main():
     )
 
     parentParser.add_argument(
-        "--arm-api-version", help="Specifies the api-version to try first for arm calls", default="2020-06-01"
+        "--arm-api-version", help="Specifies the api-version to try first for arm calls", default="2018-02-14"
     )
 
     parser = argparse.ArgumentParser()
