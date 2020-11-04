@@ -31,7 +31,6 @@ class _TokenEvent(asyncio.Event):
 
             # Stop enumeration 15 seconds before token set to expire
             now = int(time.time())
-            print(now, self.currentToken.expires_on, self.currentToken.expires_on - now)
             await asyncio.sleep(self.currentToken.expires_on - now - 15)
 
             # Prevent requests by clearing event
