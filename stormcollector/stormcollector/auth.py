@@ -102,7 +102,7 @@ class Context:
             exit()
 
     @staticmethod
-    async def auth(args: Namespace, refresh=False):
+    async def auth(args: Namespace, currentCtx=None):
         """Authenticate to AAD and/or ARM endpoints}"""
 
         # Minimize repeated code by calling functions dynamically
@@ -118,7 +118,7 @@ class Context:
         )
 
         authenticatedCreds.append(adaptedCred)
-        if refresh:
+        if currentCtx:
             return authenticatedCreds
 
         return Context(args, cloud, authenticatedCreds)

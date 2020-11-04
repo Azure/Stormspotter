@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import time
 from dataclasses import dataclass
 
 import aiohttp
@@ -10,6 +11,46 @@ from .auth import Context
 from .utils import sqlite_writer
 
 
+class _TokenEvent(asyncio.Event):
+    def __init__(self, ctx: Context, base_url: str, objName: str) -> None:
+        super().__init__()
+        self.currentToken = None
+        self.token_refresh_task = asyncio.create_task(
+            self._get_new_token_for_aad_enum(ctx, base_url, objName)
+        )
+
+    async def _get_new_token_for_aad_enum(
+        self, ctx: Context, base_url: str, objName: str
+    ):
+        """Background task to get new token before access token expiration."""
+        while True:
+            self.currentToken = await ctx.cred_async.get_token(base_url + "/.default")
+
+            # Set event to resume enumeration
+            self.set()
+
+            # Stop enumeration 15 seconds before token set to expire
+            now = int(time.time())
+            print(now, self.currentToken.expires_on, self.currentToken.expires_on - now)
+            await asyncio.sleep(self.currentToken.expires_on - now - 15)
+
+            # Prevent requests by clearing event
+            self.clear()
+            logger.info(f"Waiting for new access tokens for {objName} enumeration...")
+
+            # Check to see if expiration has passed yet. Refresh after expiration to be safe.
+            scope = base_url + "/.default"
+            self.currentToken = await ctx.cred_async.get_token(scope)
+            while self.currentToken.expires_on < int(time.time()):
+                await asyncio.sleep(5)
+                self.currentToken = await ctx.cred_async.get_token(scope)
+
+            ctx.cred_sync, ctx.cred_async, ctx.cred_msrest = await Context.auth(
+                ctx.args, ctx
+            )
+            logger.info(f"Resuming {objName} enumeration...")
+
+
 @dataclass
 class AADObject:
     resource = str
@@ -18,26 +59,38 @@ class AADObject:
     base_url: str
     api_version: str = "api-version=1.6-internal"
 
+    def __post_init__(self):
+        self._token_event = _TokenEvent(
+            self.ctx, self.base_url, self.__class__.__name__
+        )
+
     async def parse(self, value):
         return value
 
     async def expand(self, resource_id, prop):
         user_url = f"{self.base_url}/{self.tenant_id}/{self.resource}/{resource_id}/{prop}?{self.api_version}"
-        async with self.session.get(user_url) as expanded:
+        headers = {"Authorization": f"Bearer {self._token_event.currentToken.token}"}
+        async with self.session.get(user_url, headers=headers) as expanded:
             return await expanded.json()
 
     @logger.catch()
-    async def query_objects(self, headers: dict):
+    async def query_objects(self):
         logger.info(f"Starting query for {self.__class__.__name__}")
 
-        self.session = aiohttp.ClientSession(headers=headers, connector=SSL_CONTEXT)
+        self.session = aiohttp.ClientSession(connector=SSL_CONTEXT)
         user_url = (
             f"{self.base_url}/{self.tenant_id}/{self.resource}?{self.api_version}"
         )
 
         next_link = True
         while next_link:
-            async with self.session.get(user_url) as resp:
+
+            await self._token_event.wait()
+            headers = {
+                "Authorization": f"Bearer {self._token_event.currentToken.token}"
+            }
+
+            async with self.session.get(user_url, headers=headers) as resp:
                 response = await resp.json()
                 if "odata.error" in response:
                     raise Exception(response)
@@ -52,6 +105,8 @@ class AADObject:
                 else:
                     next_link = False
         await self.session.close()
+        self._token_event.token_refresh_task.cancel()
+
         logger.info(f"Finished query for {self.__class__.__name__}")
 
 
@@ -131,7 +186,7 @@ class AADGroup(AADObject):
 async def query_aad(ctx: Context, args: argparse.Namespace):
     logger.info(f"Checking access for Azure AD: {ctx.cloud['AAD']}")
     aad_types = AADObject.__subclasses__()
-    # token = await ctx.cred.get_token(ctx.cloud["AAD"])
+
     token = await ctx.cred_async.get_token(f"{ctx.cloud['AAD']}/.default")
     headers = {"Authorization": f"Bearer {token.token}"}
 
@@ -172,7 +227,7 @@ async def query_aad(ctx: Context, args: argparse.Namespace):
                         tenant_id="beta",
                         base_url=ctx.cloud["GRAPH"],
                         api_version="",
-                    ).query_objects(headers)
+                    ).query_objects()
                     for aad_type in aad_types
                 ]
             )
@@ -182,7 +237,7 @@ async def query_aad(ctx: Context, args: argparse.Namespace):
                 *[
                     aad_type(
                         ctx=ctx, tenant_id=tenantid, base_url=ctx.cloud["AAD"],
-                    ).query_objects(headers)
+                    ).query_objects()
                     for aad_type in aad_types
                 ]
             )
