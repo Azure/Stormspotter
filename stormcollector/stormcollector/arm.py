@@ -35,17 +35,20 @@ async def _query_resource(
             api_versions = list(
                 filter(lambda v: v not in invalid_versions, api_versions)
             )
+            
             if api_versions:
+                logger.debug(f"Unsupported api-version ({api_version}) for {resource_id} trying {api_versions[-1]}")
                 return await _query_resource(
                     client,
                     resource_id,
                     api_version=api_versions[-1],
                     invalid_versions=invalid_versions,
                 )
+            else:
+                logger.debug(f"No supported api-version found for {resource_id}")
 
 
-async def _query_subscription(ctx: Context, sub: Subscription):
-
+async def _query_subscription(ctx: Context, sub: Subscription, args: argparse.Namespace):
     logger.info(f"Querying for resources in subscription - {sub.subscription_id}")
     sub_dict = sub.as_dict()
     sub_dict["resourceGroups"] = []
@@ -60,7 +63,7 @@ async def _query_subscription(ctx: Context, sub: Subscription):
 
         # GET RESOURCES IN SUBSCRIPTION
         async for resource in rm_client.resources.list():
-            res = await _query_resource(rm_client, resource.id)
+            res = await _query_resource(rm_client, resource.id, args.arm_api_version)
             if res:
                 output = OUTPUT_FOLDER / f"{sub.subscription_id}.sqlite"
                 await sqlite_writer(output, res)
@@ -131,6 +134,10 @@ async def query_arm(ctx: Context, args: argparse.Namespace) -> None:
         ctx.cred_async, base_url=ctx.cloud["ARM"]
     ) as sub_client:
         async for tenant in sub_client.tenants.list():
+            if args.tenants:
+                if not tenant.tenant_id in args.tenants:
+                    logger.debug(f"Skipping Tenant {tenant.tenant_id}")
+                    continue
             tenant_dict = tenant.as_dict()
             tenant_dict["subscriptions"] = []
             logger.info(
@@ -142,9 +149,11 @@ async def query_arm(ctx: Context, args: argparse.Namespace) -> None:
             async for subscription in sub_client.subscriptions.list():
                 if args.subs:
                     if not subscription.subscription_id in args.subs:
+                        logger.debug(f"Skipping Subscription {subscription.subscription_id}")
                         continue
                 if args.nosubs:
                     if subscription.subscription_id in args.nosubs:
+                        logger.debug(f"Skipping Subscription {subscription.subscription_id}")
                         continue
                 sub_list.append(subscription)
 
@@ -174,7 +183,7 @@ async def query_arm(ctx: Context, args: argparse.Namespace) -> None:
                         await sqlite_writer(rbac_output, role)
 
             subTasks = [
-                asyncio.create_task(_query_subscription(ctx, sub)) for sub in sub_list
+                asyncio.create_task(_query_subscription(ctx, sub, args)) for sub in sub_list
             ]
 
             for result in asyncio.as_completed(*[subTasks]):
