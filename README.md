@@ -37,7 +37,7 @@ If you choose to run Stormspotter without Docker, you must have [Python 3.8](htt
 
 ### Backend
 
-The backend handles parsing data into Neo4j is built with [FastAPI](https://fastapi.tiangolo.com/). If you don't plan on uploading new content for the database, you may not need to run the backend at all. The backend is configured to run on port 9090. You may change this by changing the port number on line 5 of [app.py](stormfront-backend/app.py). If you do, you must also change the port in the Q-Uploader component in the [DatabaseView Component](stormfront/src/components/DatabaseView.vue) so that the uploads from the frontend get sent to the correct port where the backend resides.
+The backend handles parsing data into Neo4j is built with [FastAPI](https://fastapi.tiangolo.com/). If you don't plan on uploading new content for the database, you may not need to run the backend at all. The backend is configured to run on port 9090. You may change this by changing the port number on line 5 of [app.py](backend/app.py). If you do, you must also change the port in the Q-Uploader component in the [DatabaseView Component](frontend/src/components/DatabaseView.vue) so that the uploads from the frontend get sent to the correct port where the backend resides.
 
 ```
 cd backend
