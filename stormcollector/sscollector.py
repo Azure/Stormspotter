@@ -69,6 +69,11 @@ def main():
     )
 
     parentParser.add_argument(
+        "--backfill",
+        help="Perform AAD enumeration only for object IDs associated with RBAC enumeration. Only applicable when --azure is specified.",
+        action="store_true",
+    )
+    parentParser.add_argument(
         "--subs",
         nargs="+",
         help="Subscriptions you wish to scan. Multiple subscriptions can be added as a space deliminated list --subs subid1 subid2",

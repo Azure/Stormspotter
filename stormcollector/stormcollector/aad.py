@@ -2,6 +2,7 @@ import argparse
 import asyncio
 import time
 from dataclasses import dataclass
+from itertools import chain
 
 import aiohttp
 from loguru import logger
@@ -12,6 +13,8 @@ from .utils import sqlite_writer
 
 
 class _TokenEvent(asyncio.Event):
+    """Handles manual refreshing of access tokens during AAD enumeration"""
+
     def __init__(self, ctx: Context, base_url: str, objName: str) -> None:
         super().__init__()
         self.currentToken = None
@@ -73,13 +76,19 @@ class AADObject:
             return await expanded.json()
 
     @logger.catch()
-    async def query_objects(self):
-        logger.info(f"Starting query for {self.__class__.__name__}")
+    async def query_objects(self, object_id: str = None):
+
+        # Prevent logging for each backfill item
+        if not object_id:
+            logger.info(f"Starting query for {self.__class__.__name__}")
 
         self.session = aiohttp.ClientSession(connector=SSL_CONTEXT)
-        user_url = (
-            f"{self.base_url}/{self.tenant_id}/{self.resource}?{self.api_version}"
-        )
+        if object_id:
+            user_url = f"{self.base_url}/{self.tenant_id}/{self.resource}/{object_id}?{self.api_version}"
+        else:
+            user_url = (
+                f"{self.base_url}/{self.tenant_id}/{self.resource}?{self.api_version}"
+            )
 
         next_link = True
         while next_link:
@@ -94,15 +103,26 @@ class AADObject:
                 if "odata.error" in response:
                     raise Exception(response)
 
-                for value in response["value"]:
-                    parsedVal = await self.parse(value)
-                    await sqlite_writer(
-                        OUTPUT_FOLDER / f"{self.__class__.__name__}.sqlite", parsedVal
-                    )
-                if "odata.nextLink" in response:
-                    user_url = f"{self.base_url}/{self.tenant_id}/{response['odata.nextLink']}&{self.api_version}"
+                # If response contains value, it's normal enumeration.
+                if response.get("value"):
+                    for value in response["value"]:
+                        parsedVal = await self.parse(value)
+                        await sqlite_writer(
+                            OUTPUT_FOLDER / f"{self.__class__.__name__}.sqlite",
+                            parsedVal,
+                        )
+                    if "odata.nextLink" in response:
+                        user_url = f"{self.base_url}/{self.tenant_id}/{response['odata.nextLink']}&{self.api_version}"
+                    else:
+                        next_link = False
+                # Else it's backfill
                 else:
+                    parsedVal = await self.parse(response)
+                    await sqlite_writer(
+                        OUTPUT_FOLDER / f"{self.__class__.__name__}.sqlite", parsedVal,
+                    )
                     next_link = False
+
         await self.session.close()
         self._token_event.token_refresh_task.cancel()
 
@@ -182,7 +202,7 @@ class AADGroup(AADObject):
         return value
 
 
-async def query_aad(ctx: Context, args: argparse.Namespace):
+async def query_aad(ctx: Context, args: argparse.Namespace, backfills: dict = None):
     logger.info(f"Checking access for Azure AD: {ctx.cloud['AAD']}")
     aad_types = AADObject.__subclasses__()
 
@@ -219,25 +239,101 @@ async def query_aad(ctx: Context, args: argparse.Namespace):
                     )
                     return await session.close()
 
-            await asyncio.gather(
-                *[
-                    aad_type(
-                        ctx=ctx,
-                        tenant_id="beta",
-                        base_url=ctx.cloud["GRAPH"],
-                        api_version="",
-                    ).query_objects()
-                    for aad_type in aad_types
-                ]
-            )
+            if backfills:
+                await asyncio.gather(
+                    list(
+                        chain(
+                            [
+                                AADUser(
+                                    ctx=ctx,
+                                    tenant_id="beta",
+                                    base_url=ctx.cloud["GRAPH"],
+                                    api_version="",
+                                ).query_objects(obj)
+                                for obj in backfills["User"]
+                            ],
+                            [
+                                AADGroup(
+                                    ctx=ctx,
+                                    tenant_id="beta",
+                                    base_url=ctx.cloud["GRAPH"],
+                                    api_version="",
+                                ).query_objects(obj)
+                                for obj in backfills["Group"]
+                            ],
+                            [
+                                AADServicePrincipal(
+                                    ctx=ctx,
+                                    tenant_id="beta",
+                                    base_url=ctx.cloud["GRAPH"],
+                                    api_version="",
+                                ).query_objects(obj)
+                                for obj in backfills["ServicePrincipal"]
+                            ],
+                        )
+                    )
+                )
+            else:
+                await asyncio.gather(
+                    *[
+                        aad_type(
+                            ctx=ctx,
+                            tenant_id="beta",
+                            base_url=ctx.cloud["GRAPH"],
+                            api_version="",
+                        ).query_objects()
+                        for aad_type in aad_types
+                    ]
+                )
         else:
             logger.info(f"Starting enumeration for Azure AD: {ctx.cloud['AAD']}")
-            await asyncio.gather(
-                *[
-                    aad_type(
-                        ctx=ctx, tenant_id=tenantid, base_url=ctx.cloud["AAD"],
-                    ).query_objects()
-                    for aad_type in aad_types
-                ]
-            )
+
+            if backfills:
+                await asyncio.gather(
+                    *list(
+                        chain(
+                            [
+                                AADUser(
+                                    ctx=ctx,
+                                    tenant_id="beta",
+                                    base_url=ctx.cloud["GRAPH"],
+                                    api_version="",
+                                ).query_objects(obj)
+                                for obj in backfills["User"]
+                            ],
+                            [
+                                AADGroup(
+                                    ctx=ctx,
+                                    tenant_id="beta",
+                                    base_url=ctx.cloud["GRAPH"],
+                                    api_version="",
+                                ).query_objects(obj)
+                                for obj in backfills["Group"]
+                            ],
+                            [
+                                AADServicePrincipal(
+                                    ctx=ctx,
+                                    tenant_id="beta",
+                                    base_url=ctx.cloud["GRAPH"],
+                                    api_version="",
+                                ).query_objects(obj)
+                                for obj in backfills["ServicePrincipal"]
+                            ],
+                        )
+                    )
+                )
+            else:
+                await asyncio.gather(
+                    *[
+                        aad_type(
+                            ctx=ctx, tenant_id=tenantid, base_url=ctx.cloud["AAD"],
+                        ).query_objects()
+                        for aad_type in aad_types
+                    ]
+                )
     await session.close()
+
+
+async def rbac_backfill(ctx: Context, args: argparse.Namespace, backfills: dict):
+    logger.info("Starting AAD backfill enumeration")
+    await query_aad(ctx, args, backfills)
