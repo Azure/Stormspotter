@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@quasar/extras": "^1.9.5",
-    "axios": "^0.18.1",
+    "axios": "^0.21.1",
     "core-js": "^3.6.5",
     "cytoscape-cola": "^2.4.0",
     "cytoscape-cose-bilkent": "^4.1.0",
