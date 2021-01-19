@@ -335,5 +335,6 @@ async def query_aad(ctx: Context, args: argparse.Namespace, backfills: dict = No
 
 
 async def rbac_backfill(ctx: Context, args: argparse.Namespace, backfills: dict):
-    logger.info("Starting AAD backfill enumeration")
+    logger.info("Performing AAD backfill enumeration")
     await query_aad(ctx, args, backfills)
+    logger.info("Completed AAD backfill enumeration")
