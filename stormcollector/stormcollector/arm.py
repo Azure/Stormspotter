@@ -13,6 +13,7 @@ from azure.mgmt.resource.subscriptions.models import Subscription
 from loguru import logger
 
 from . import OUTPUT_FOLDER, SSL_CONTEXT
+from .aad import rbac_backfill
 from .auth import Context
 from .utils import sqlite_writer
 
@@ -29,9 +30,14 @@ async def _query_resource(
     except HttpResponseError as ex:
         if "No registered resource provider found for location" in ex.message:
             invalid_versions.append(api_version)
-            api_versions = re.search(
-                "The supported api-versions are '(.*?)'. The supported locations", ex.message
-            ).groups()[0].split(', ')
+            api_versions = (
+                re.search(
+                    "The supported api-versions are '(.*?)'. The supported locations",
+                    ex.message,
+                )
+                .groups()[0]
+                .split(", ")
+            )
             api_versions = list(
                 filter(lambda v: v not in invalid_versions, api_versions)
             )
@@ -152,6 +158,7 @@ async def query_arm(ctx: Context, args: argparse.Namespace) -> None:
                 logger.error(f"No subscriptions found for {tenant.tenant_id}")
                 continue
 
+            # ENUMERATE MANAGEMENT CERTS
             if ctx.cloud["MGMT"]:
                 certsTasks = [
                     asyncio.create_task(_query_management_certs(ctx, sub))
@@ -164,15 +171,29 @@ async def query_arm(ctx: Context, args: argparse.Namespace) -> None:
                     if await cert:
                         await sqlite_writer(certs_output, cert)
 
+            # ENUMERATE RBAC
             executor = concurrent.futures.ThreadPoolExecutor(max_workers=len(sub_list))
             rbacTasks = {executor.submit(_query_rbac, ctx, sub) for sub in sub_list}
+
+            backfills = {
+                "User": set(),
+                "Group": set(),
+                "ServicePrincipal": set(),
+                "Application": set(),
+            }  # Dict of object IDs to hold for AAD enumeration
 
             rbac_output = OUTPUT_FOLDER / f"rbac.sqlite"
             for rbac in concurrent.futures.as_completed(*[rbacTasks]):
                 if rbac.result():
                     for role in rbac.result():
                         await sqlite_writer(rbac_output, role)
+                        if args.backfill:
+                            backfills[role["principal_type"]].add(role["principal_id"])
 
+            if args.backfill:
+                await rbac_backfill(ctx, args, backfills)
+
+            # ENUMERATE TENANT DATA
             subTasks = [
                 asyncio.create_task(_query_subscription(ctx, sub)) for sub in sub_list
             ]

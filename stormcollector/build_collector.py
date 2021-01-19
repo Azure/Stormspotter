@@ -5,7 +5,6 @@ import shutil
 import subprocess
 import sys
 import time
-import zipfile
 from datetime import datetime
 
 # import distutils.sysconfig

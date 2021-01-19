@@ -22,7 +22,7 @@ logger.configure(
 logging.getLogger("uvicorn.access").handlers = [InterceptHandler()]
 
 app = FastAPI(
-    title="Stormfront-Backend",
+    title="Stormspotter-Backend",
     description="API Handler for Stormspotter",
     version="1.0.0",
 )
