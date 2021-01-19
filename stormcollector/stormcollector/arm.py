@@ -190,7 +190,8 @@ async def query_arm(ctx: Context, args: argparse.Namespace) -> None:
                         if args.backfill:
                             backfills[role["principal_type"]].add(role["principal_id"])
 
-            if args.backfill:
+            # Only do backfill if azure argument is true (meaning specified on command line)
+            if args.azure and args.backfill:
                 await rbac_backfill(ctx, args, backfills)
 
             # ENUMERATE TENANT DATA

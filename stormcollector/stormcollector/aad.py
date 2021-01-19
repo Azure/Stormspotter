@@ -123,10 +123,13 @@ class AADObject:
                     )
                     next_link = False
 
+        # Finish cleanly
         await self.session.close()
         self._token_event.token_refresh_task.cancel()
 
-        logger.info(f"Finished query for {self.__class__.__name__}")
+        # Prevent logging for each backfill item
+        if not object_id:
+            logger.info(f"Finished query for {self.__class__.__name__}")
 
 
 @dataclass

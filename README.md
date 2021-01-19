@@ -99,6 +99,7 @@ python3 sscollector.pyz spn -t <tenant> -c <clientID> -s <clientSecret>
 - **--json**: Convert SQLite output to JSON (**WARNING: STORMSPOTTER ONLY PARSES SQLITE FORMAT** )
   - This option is useful if you want to parse the output for reasons other than Stormspotter.
 - **--ssl-cert**: Specify an SSL cert for Stormcollector to use for requests. Not a common option
+- **--backfill**: Perform AAD enumeration only for object IDs associated with RBAC enumeration. Only applicable when --azure is specified.
 
 **Uploading Results**
 
