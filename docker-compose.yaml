@@ -6,7 +6,7 @@ networks:
 
 services:
   stormspotter-neo4j:
-    image: neo4j:latest
+    image: neo4j:3.5.18
     restart: unless-stopped
     networks:
       - stormspotter-network
