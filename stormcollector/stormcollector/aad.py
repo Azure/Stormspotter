@@ -230,7 +230,7 @@ async def query_aad(ctx: Context, args: argparse.Namespace, backfills: dict = No
             logger.info(f"Checking access for Microsoft Graph: {ctx.cloud['GRAPH']}")
             token = await ctx.cred_async.get_token(f"{ctx.cloud['GRAPH']}/.default")
             headers = {"Authorization": f"Bearer {token.token}"}
-            user_url = f"{ctx.cloud['GRAPH']}/beta/me"
+            user_url = f"{ctx.cloud['GRAPH']}/beta/users"
 
             async with session.get(user_url, headers=headers) as graph_req:
                 graph_resp = await graph_req.json()
