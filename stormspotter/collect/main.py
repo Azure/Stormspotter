@@ -6,10 +6,12 @@ from typing import Any, List
 import click
 import typer
 from azure.identity.aio import AzureCliCredential
+from rich import print
 
-from stormspotter.collect.context import CollectorContext
-
+from .aad import query_aad
+from .context import CollectorContext
 from .enums import Cloud, EnumMode
+from .utils import gen_results_tables
 
 app = typer.Typer(
     name="Stormspotter Collector CLI",
@@ -21,8 +23,26 @@ log = logging.getLogger("rich")
 
 
 async def start_collect(ctx: CollectorContext):
-    # ctx.output_dir.mkdir(parents=True)
-    pass
+
+    # Create the directory for output
+    ctx.output_dir.mkdir(parents=True)
+
+    # Create and run tasks for AAD and/or ARM
+    tasks = []
+
+    if EnumMode.AAD in ctx.mode:
+        tasks.append(asyncio.create_task(query_aad(ctx)))
+
+    if EnumMode.ARM in ctx.mode:
+        pass
+
+    await asyncio.wait(tasks)
+
+    # Ensure credential object gets closed properly
+    await ctx.cred.close()
+
+    # Print results
+    print("\n", gen_results_tables(ctx._aad_results, ctx._arm_results))
 
 
 @click.pass_context
@@ -45,7 +65,7 @@ def main(ctx: typer.Context):
 
 
 @app.command()
-def cli(
+def azcli(
     ctx: typer.Context,
     cloud: Cloud = typer.Option(
         Cloud.PUBLIC, "--cloud", help="Cloud environment", metavar=""
@@ -71,5 +91,5 @@ def cli(
     cred = AzureCliCredential()
 
     ctx.obj["ctx"] = CollectorContext(
-        cred, cloud, mode, backfill, include_subs, exclude_subs
+        cred, cloud._cloud, mode, backfill, include_subs, exclude_subs
     )

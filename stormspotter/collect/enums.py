@@ -13,17 +13,17 @@ class Cloud(str, Enum):
     def __init__(self=None, cloud=None):
         if cloud == "china":
             cloud
-            cfg = AZURE_CHINA_CLOUD
+            _cloud = AZURE_CHINA_CLOUD
         elif cloud == "german":
             cloud
-            cfg = AZURE_GERMAN_CLOUD
+            _cloud = AZURE_GERMAN_CLOUD
         elif cloud == "public":
             cloud
-            cfg = AZURE_PUBLIC_CLOUD
+            _cloud = AZURE_PUBLIC_CLOUD
         elif cloud == "usgov":
-            cfg = AZURE_US_GOV_CLOUD
-            self.cfg = cfg
-            return None
+            _cloud = AZURE_US_GOV_CLOUD
+
+        self._cloud = _cloud
 
 
 class EnumMode(IntFlag):
