@@ -1,4 +1,4 @@
-from enum import Enum, IntFlag, auto
+from enum import Enum
 
 from msrestazure.azure_cloud import (AZURE_CHINA_CLOUD, AZURE_GERMAN_CLOUD,
                                      AZURE_PUBLIC_CLOUD, AZURE_US_GOV_CLOUD)
@@ -26,7 +26,7 @@ class Cloud(str, Enum):
         self._cloud = _cloud
 
 
-class EnumMode(IntFlag):
-    AAD = auto()
-    ARM = auto()
-    BOTH = AAD | ARM
+class EnumMode(str, Enum):
+    AAD = "aad"
+    ARM = "arm"
+    BOTH = "both"

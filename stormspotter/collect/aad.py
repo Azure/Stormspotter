@@ -269,3 +269,9 @@ async def query_aad(ctx: CollectorContext, backfills: dict = None):
                 await asyncio.gather(
                     *[aad_type(ctx).query_objects() for aad_type in aad_types]
                 )
+
+
+async def rbac_backfill(ctx: CollectorContext, backfills: dict):
+    log.info("Performing ARM RBAC backfill enumeration on AAD")
+    await query_aad(ctx, backfills)
+    log.info("Completed ARM RBAC backfill enumeration")

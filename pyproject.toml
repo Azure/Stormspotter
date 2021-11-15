@@ -16,10 +16,13 @@ azure-identity = "^1.7.1"
 uvloop = {version = "^0.16.0", platform = "linux"}
 msgpack = "^1.0.2"
 aiosqlite = "^0.17.0"
+azure-mgmt-resource = "^20.0.0"
+azure-mgmt-authorization = "^2.0.0"
 
 [tool.poetry.dev-dependencies]
 isort = "^5.10.1"
 black = "^21.10b0"
+orjson = "^3.6.4"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

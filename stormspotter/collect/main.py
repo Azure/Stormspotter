@@ -9,6 +9,7 @@ from azure.identity.aio import AzureCliCredential
 from rich import print
 
 from .aad import query_aad
+from .arm import query_arm
 from .context import CollectorContext
 from .enums import Cloud, EnumMode
 from .utils import gen_results_tables
@@ -30,11 +31,11 @@ async def start_collect(ctx: CollectorContext):
     # Create and run tasks for AAD and/or ARM
     tasks = []
 
-    if EnumMode.AAD in ctx.mode:
+    if ctx.mode in [EnumMode.AAD, EnumMode.BOTH]:
         tasks.append(asyncio.create_task(query_aad(ctx)))
 
-    if EnumMode.ARM in ctx.mode:
-        pass
+    if ctx.mode in [EnumMode.ARM, EnumMode.BOTH]:
+        tasks.append(asyncio.create_task(query_arm(ctx)))
 
     await asyncio.wait(tasks)
 
@@ -71,7 +72,11 @@ def azcli(
         Cloud.PUBLIC, "--cloud", help="Cloud environment", metavar=""
     ),
     mode: EnumMode = typer.Option(
-        EnumMode.BOTH, "--mode", help="AAD, ARM, or both", metavar=""
+        EnumMode.BOTH,
+        "--mode",
+        help="AAD, ARM, or both",
+        metavar="",
+        case_sensitive=False,
     ),
     backfill: bool = typer.Option(
         False,

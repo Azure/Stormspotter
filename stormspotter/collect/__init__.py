@@ -22,3 +22,7 @@ logging.basicConfig(
     datefmt="[%X]",
     handlers=[RichHandler(rich_tracebacks=True, markup=True)],
 )
+
+# Reduce Azure HTTP logging
+azure_logger = logging.getLogger("azure.core.pipeline.policies.http_logging_policy")
+azure_logger.setLevel(logging.WARNING)

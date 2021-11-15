@@ -80,6 +80,14 @@ tests = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)"
 tests_no_zope = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "mypy", "pytest-mypy-plugins"]
 
 [[package]]
+name = "azure-common"
+version = "1.1.27"
+description = "Microsoft Azure Client Library for Python (Common)"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "azure-core"
 version = "1.20.1"
 description = "Microsoft Azure Core Library for Python"
@@ -105,6 +113,43 @@ cryptography = ">=2.5"
 msal = ">=1.12.0,<2.0.0"
 msal-extensions = ">=0.3.0,<0.4.0"
 six = ">=1.12.0"
+
+[[package]]
+name = "azure-mgmt-authorization"
+version = "2.0.0"
+description = "Microsoft Azure Authorization Management Client Library for Python"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+azure-common = ">=1.1,<2.0"
+azure-mgmt-core = ">=1.2.0,<2.0.0"
+msrest = ">=0.6.21"
+
+[[package]]
+name = "azure-mgmt-core"
+version = "1.3.0"
+description = "Microsoft Azure Management Core Library for Python"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+azure-core = ">=1.15.0,<2.0.0"
+
+[[package]]
+name = "azure-mgmt-resource"
+version = "20.0.0"
+description = "Microsoft Azure Resource Management Client Library for Python"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+azure-common = ">=1.1,<2.0"
+azure-mgmt-core = ">=1.2.0,<2.0.0"
+msrest = ">=0.6.21"
 
 [[package]]
 name = "black"
@@ -349,6 +394,14 @@ signals = ["blinker (>=1.4.0)"]
 signedtoken = ["cryptography (>=3.0.0,<4)", "pyjwt (>=2.0.0,<3)"]
 
 [[package]]
+name = "orjson"
+version = "3.6.4"
+description = "Fast, correct Python JSON library supporting dataclasses, datetimes, and numpy"
+category = "dev"
+optional = false
+python-versions = ">=3.7"
+
+[[package]]
 name = "pathspec"
 version = "0.9.0"
 description = "Utility library for gitignore style pattern matching of file paths."
@@ -589,7 +642,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "91b8579d486e4c308371f8d9720b13053c4732abb72e43e83d77427d91b92a98"
+content-hash = "95a8b22c9c3563147481e831469c7d6a7d3c5ea3fea7a7f6e612b6735ae903e9"
 
 [metadata.files]
 adal = [
@@ -686,6 +739,10 @@ attrs = [
     {file = "attrs-21.2.0-py2.py3-none-any.whl", hash = "sha256:149e90d6d8ac20db7a955ad60cf0e6881a3f20d37096140088356da6c716b0b1"},
     {file = "attrs-21.2.0.tar.gz", hash = "sha256:ef6aaac3ca6cd92904cdd0d83f629a15f18053ec84e6432106f7a4d04ae4f5fb"},
 ]
+azure-common = [
+    {file = "azure-common-1.1.27.zip", hash = "sha256:9f3f5d991023acbd93050cf53c4e863c6973ded7e236c69e99c8ff5c7bad41ef"},
+    {file = "azure_common-1.1.27-py2.py3-none-any.whl", hash = "sha256:426673962740dbe9aab052a4b52df39c07767decd3f25fdc87c9d4c566a04934"},
+]
 azure-core = [
     {file = "azure-core-1.20.1.zip", hash = "sha256:21d06311c9c373e394ed9f9db035306773334a0181932e265889eca34d778d17"},
     {file = "azure_core-1.20.1-py2.py3-none-any.whl", hash = "sha256:5e5df1850ef6eff2b481a4a5fefa7d73ec74b6a2e0b27b179341f73f655fa4bf"},
@@ -693,6 +750,18 @@ azure-core = [
 azure-identity = [
     {file = "azure-identity-1.7.1.zip", hash = "sha256:7f22cd0c7a9b92ed297dd67ae79d9bb9a866e404061c02cec709ad10c4c88e19"},
     {file = "azure_identity-1.7.1-py2.py3-none-any.whl", hash = "sha256:454e16ed1152b4fd3fb463f4b4e2f7a3fc3a862b0ca28010bff6d5c6b2b0c50f"},
+]
+azure-mgmt-authorization = [
+    {file = "azure-mgmt-authorization-2.0.0.zip", hash = "sha256:0776edc4980be940a8602eefc0372b4d1a1fa26caa46e3c0234e0c7a0feda4ec"},
+    {file = "azure_mgmt_authorization-2.0.0-py2.py3-none-any.whl", hash = "sha256:02bcf52ccd1594ebf484741f5a7110dc28ee970664bb75493561d1a180874d38"},
+]
+azure-mgmt-core = [
+    {file = "azure-mgmt-core-1.3.0.zip", hash = "sha256:3ffb7352b39e5495dccc2d2b47254f4d82747aff4735e8bf3267c335b0c9bb40"},
+    {file = "azure_mgmt_core-1.3.0-py2.py3-none-any.whl", hash = "sha256:7b7fa952aeb9d3eaa13eff905880f3d3b62200f7be7a8ba5a50c8b2e7295322a"},
+]
+azure-mgmt-resource = [
+    {file = "azure-mgmt-resource-20.0.0.zip", hash = "sha256:622dca4484be64f9f5ce335d327dffabf3e71e14e8a3f4a1051dc85a5c3ebbca"},
+    {file = "azure_mgmt_resource-20.0.0-py2.py3-none-any.whl", hash = "sha256:0ebad05a946e27c17d5a86ea5a68b2d9a0142257656ae8211dee9fc191c849b7"},
 ]
 black = [
     {file = "black-21.10b0-py3-none-any.whl", hash = "sha256:6eb7448da9143ee65b856a5f3676b7dda98ad9abe0f87fce8c59291f15e82a5b"},
@@ -1005,6 +1074,31 @@ mypy-extensions = [
 oauthlib = [
     {file = "oauthlib-3.1.1-py2.py3-none-any.whl", hash = "sha256:42bf6354c2ed8c6acb54d971fce6f88193d97297e18602a3a886603f9d7730cc"},
     {file = "oauthlib-3.1.1.tar.gz", hash = "sha256:8f0215fcc533dd8dd1bee6f4c412d4f0cd7297307d43ac61666389e3bc3198a3"},
+]
+orjson = [
+    {file = "orjson-3.6.4-cp310-cp310-macosx_10_7_x86_64.whl", hash = "sha256:fc01a15f3101628fd619158daec79b30d7461149735e73542ca8c13be6b835be"},
+    {file = "orjson-3.6.4-cp310-cp310-manylinux_2_24_aarch64.whl", hash = "sha256:48a69fed90f551bf9e9bb7a63e363fed4f67fc7c6e6bfb057054dc78f6721e9e"},
+    {file = "orjson-3.6.4-cp310-cp310-manylinux_2_24_x86_64.whl", hash = "sha256:3722f02f50861d5e2a6be9d50bfe8da27a5155bb60043118a4e1ceb8c7040cf7"},
+    {file = "orjson-3.6.4-cp310-none-win_amd64.whl", hash = "sha256:231a99a728322d0271e970b149c57deb67315e6837e6cd4166cf51d30161700c"},
+    {file = "orjson-3.6.4-cp37-cp37m-macosx_10_7_x86_64.whl", hash = "sha256:6cd300421b41f7e84e388b1792a18c3fc4c440ae3039434b9320956be05f0102"},
+    {file = "orjson-3.6.4-cp37-cp37m-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:e55ef66ee1d35b1c43db275aff3a1ba7e0408b31e624912a612bd799df14e73e"},
+    {file = "orjson-3.6.4-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:eef8d332af8e6f7d6d2c1f3b5384c8d239800c1405b136da5f1710e802918d57"},
+    {file = "orjson-3.6.4-cp37-cp37m-manylinux_2_24_aarch64.whl", hash = "sha256:8896e242a92733e454378e22711bd43a55fda4e80604fcefcc064ca977623673"},
+    {file = "orjson-3.6.4-cp37-cp37m-manylinux_2_24_x86_64.whl", hash = "sha256:bdfa6f29f7b6aad70ce14591b99fba651008afa6bc3759f158887bcdc568b452"},
+    {file = "orjson-3.6.4-cp37-none-win_amd64.whl", hash = "sha256:7c16c44872d33da0b97050a9ea8f7bc04e930c56e8185657bc200e1875a671da"},
+    {file = "orjson-3.6.4-cp38-cp38-macosx_10_7_x86_64.whl", hash = "sha256:b467551f3be1dd08aff70c261cc883b63483eb0e31861ffe2cd8dac4fec7cfa9"},
+    {file = "orjson-3.6.4-cp38-cp38-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:7bf61afef12f6416db3ea377f3491ca8ac677d3cac6db1ebffb7a5fe92cce3ca"},
+    {file = "orjson-3.6.4-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:014ea74d4a5dd6a7e98540768072d5bd8c2fedbcbbedcbbaecbb614e66080e81"},
+    {file = "orjson-3.6.4-cp38-cp38-manylinux_2_24_aarch64.whl", hash = "sha256:705cb90c536b4b9336c06b4a62c3c62e50354ddf20a2e48eb62bf34fb93d5b1f"},
+    {file = "orjson-3.6.4-cp38-cp38-manylinux_2_24_x86_64.whl", hash = "sha256:159e2240fc36720a5cb51a1cbc9905dcb8758aad50b3e7f14f6178ce2e842004"},
+    {file = "orjson-3.6.4-cp38-none-win_amd64.whl", hash = "sha256:d2ae087866a1050de83c2a28490850badb41aeeb8a4605c84dd6004d4e58b5a4"},
+    {file = "orjson-3.6.4-cp39-cp39-macosx_10_7_x86_64.whl", hash = "sha256:b4a7efe039b1154b23e5df8787ac01e4621213aed303b6304a5f8ad89c01455d"},
+    {file = "orjson-3.6.4-cp39-cp39-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:7b24f97ed76005f447e152b0e493abce8c60f010131998295175446312a71caf"},
+    {file = "orjson-3.6.4-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:1121187e2a721864b52e5dbb3cf8dd4a4546519a5fef1e13fa777347fb8884a2"},
+    {file = "orjson-3.6.4-cp39-cp39-manylinux_2_24_aarch64.whl", hash = "sha256:4edffd9e2298ff4f4f939aa67248eba043dc65c9e7d940c28a62c5502c6f2aa8"},
+    {file = "orjson-3.6.4-cp39-cp39-manylinux_2_24_x86_64.whl", hash = "sha256:e236fe94d8a77532f0065870fe265bd53e229012f39af99f79f5f1d4a8b0067c"},
+    {file = "orjson-3.6.4-cp39-none-win_amd64.whl", hash = "sha256:5448cc1edd4c4bafc968404f92f0e9a582b4326ca442346bd1d1179a6faf52d9"},
+    {file = "orjson-3.6.4.tar.gz", hash = "sha256:f8dbc428fc6d7420f231a7133d8dff4c882e64acb585dcf2fda74bdcfe1a6d9d"},
 ]
 pathspec = [
     {file = "pathspec-0.9.0-py2.py3-none-any.whl", hash = "sha256:7d15c4ddb0b5c802d161efc417ec1a2558ea2653c2e8ad9c19098201dc1c993a"},
