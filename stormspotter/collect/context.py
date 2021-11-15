@@ -11,6 +11,8 @@ from .enums import EnumMode
 
 @dataclass
 class CollectorContext:
+    """Dataclass for context during collection"""
+
     cred: Union[AzureCliCredential, ClientSecretCredential]
     cloud: Cloud
     mode: EnumMode

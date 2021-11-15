@@ -6,6 +6,7 @@ from typing import Any, List
 import click
 import typer
 from azure.identity.aio import AzureCliCredential
+
 from stormspotter.collect.context import CollectorContext
 
 from .enums import Cloud, EnumMode
