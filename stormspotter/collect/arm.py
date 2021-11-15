@@ -5,9 +5,10 @@ import xml
 import aiohttp
 import orjson
 from azure.mgmt.authorization.aio import AuthorizationManagementClient
+from azure.mgmt.resource.resources.aio import ResourceManagementClient
 from azure.mgmt.resource.subscriptions.aio import SubscriptionClient
 from azure.mgmt.resource.subscriptions.models import Subscription
-
+from rich import print, print_json
 from stormspotter.collect.enums import EnumMode
 
 from .aad import rbac_backfill
@@ -34,7 +35,6 @@ async def _query_rbac(ctx: CollectorContext, sub: Subscription):
         async for role in auth_client.role_assignments.list():
             try:
                 role_dict = role.as_dict()
-
                 definition = await auth_client.role_definitions.get_by_id(
                     role.role_definition_id
                 )
@@ -80,10 +80,60 @@ async def _query_management_certs(ctx: CollectorContext, sub: Subscription):
                 certs.append(cert_asset)
                 ctx._arm_results.update(["ManagementCerts"])
 
+            log.info(
+                f"[bold green] Found management certs for {sub.subscription_id}![/]"
+            )
+
     log.info(
         f"Finished management certs enumeration for subscription: {sub.subscription_id}"
     )
     return certs
+
+
+async def _query_subscription(ctx: CollectorContext, sub: Subscription):
+    """Query a subscription and its resources"""
+
+    log.info(f"Querying for resources in subscription - {sub.subscription_id}")
+    async with ResourceManagementClient(
+        ctx.cred,
+        sub.subscription_id,
+        base_url=ctx.cloud.endpoints.resource_manager,
+    ) as resourcemgr_client:
+
+        # Get providers for the subscription.
+        # This makes it easier to query a resource by the correct API version
+        provider_dict = {}
+        async for provider in resourcemgr_client.providers.list():
+            for rtype in provider.resource_types:
+                name_and_type = (
+                    f"{provider.namespace.lower()}/{rtype.resource_type.lower()}"
+                )
+                if rtype.api_versions:
+                    provider_dict[name_and_type] = (
+                        rtype.default_api_version or rtype.api_versions[0]
+                    )
+
+        # Get the resources!
+        output = ctx.output_dir / f"{sub.subscription_id}.sqlite"
+
+        # First the resource groups
+        async for resource_group in resourcemgr_client.resource_groups.list():
+            await sqlite_writer(output, resource_group.as_dict())
+            ctx._arm_results.update([resource_group.type])
+
+        # Then the resources
+        async for resource in resourcemgr_client.resources.list():
+            api_version = provider_dict.get(resource.type.lower())
+
+            if res := await resourcemgr_client.resources.get_by_id(
+                resource.id, api_version
+            ):
+                await sqlite_writer(output, res.as_dict())
+                ctx._arm_results.update([res.type])
+            else:
+                log.warning(f"Could not access - {resource}")
+
+    log.info(f"Finished querying - {sub.subscription_id}")
 
 
 async def query_arm(ctx: CollectorContext) -> None:
@@ -139,23 +189,23 @@ async def query_arm(ctx: CollectorContext) -> None:
             # Enumerate RBAC
             rbac_output = ctx.output_dir / "rbac.sqlite"
 
-            # Dict of object IDs to hold for AAD enumeration
-            aad_backfills = {
-                "User": set(),
-                "Group": set(),
-                "ServicePrincipal": set(),
-                "Application": set(),
-            }
+            # List of object IDs to hold for AAD enumeration
+            aad_backfills = set()
             rbacTasks = [asyncio.create_task(_query_rbac(ctx, sub)) for sub in sub_list]
             for task in asyncio.as_completed(*[rbacTasks]):
                 if roles := await task:
                     for role in roles:
                         await sqlite_writer(rbac_output, role)
                         if ctx.backfill:
-                            aad_backfills[role["principal_type"]].add(
-                                role["principal_id"]
-                            )
+                            aad_backfills.add(role["principal_id"])
 
             # We only need to backfill if only ARM and backfill are passed
             if ctx.mode == EnumMode.ARM and ctx.backfill:
-                await rbac_backfill(ctx, aad_backfills)
+                await rbac_backfill(ctx, list(aad_backfills))
+
+        # Enumerate subscriptions
+        subTasks = [
+            asyncio.create_task(_query_subscription(ctx, sub)) for sub in sub_list
+        ]
+
+        await asyncio.gather(*subTasks)

@@ -24,5 +24,5 @@ logging.basicConfig(
 )
 
 # Reduce Azure HTTP logging
-azure_logger = logging.getLogger("azure.core.pipeline.policies.http_logging_policy")
+azure_logger = logging.getLogger("azure")
 azure_logger.setLevel(logging.WARNING)

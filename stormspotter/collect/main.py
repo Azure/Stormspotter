@@ -42,9 +42,6 @@ async def start_collect(ctx: CollectorContext):
     # Ensure credential object gets closed properly
     await ctx.cred.close()
 
-    # Print results
-    print("\n", gen_results_tables(ctx._aad_results, ctx._arm_results))
-
 
 @click.pass_context
 def _begin_run(ctx: typer.Context, result: Any):
@@ -54,7 +51,10 @@ def _begin_run(ctx: typer.Context, result: Any):
     if collector_ctx.cred:
         start_time = time.time()
         asyncio.run(start_collect(collector_ctx))
-        log.info(f"--- COMPLETION TIME: {time.time() - start_time} seconds")
+        log.info(f"--- COMPLETION TIME: {time.time() - start_time} seconds\n")
+        print(
+            gen_results_tables(collector_ctx._aad_results, collector_ctx._arm_results),
+        )
 
 
 @app.callback(result_callback=_begin_run)

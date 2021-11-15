@@ -2,13 +2,12 @@ import asyncio
 import logging
 import time
 from dataclasses import dataclass
-from itertools import chain
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 import aiohttp
 
 from .context import CollectorContext
-from .utils import sqlite_writer
+from .utils import sqlite_writer, chunk
 
 log = logging.getLogger("rich")
 
@@ -73,19 +72,65 @@ class AADObject:
         async with self.session.get(user_url, headers=headers) as expanded:
             return await expanded.json()
 
-    async def query_objects(self, object_id: str = None):
-
-        # Prevent logging for each backfill item
-        if not object_id:
-            log.info(f"Starting query for {self.__class__.__name__}")
+    async def get_objects_by_id(self, object_ids: List[str]):
+        """Get directory object by id. Only used when backfilling"""
 
         self.session = aiohttp.ClientSession()
-        if object_id:
-            user_url = (
-                f"{self.base_url}{self.ctx.tenant_id}/{self.resource}/{object_id}"
-            )
-        else:
-            user_url = f"{self.base_url}{self.ctx.tenant_id}/{self.resource}"
+        user_url = f"{self.base_url}{self.ctx.tenant_id}/directoryObjects/getByIds"
+
+        # We can only get 1000 at a time so split up
+        for group in chunk(object_ids, 1000):
+            await self._token_event.wait()
+
+            headers = {
+                "Authorization": f"Bearer {self._token_event.currentToken.token}"
+            }
+            data = {"ids": group}
+
+            async with self.session.post(user_url, headers=headers, json=data) as resp:
+                response = await resp.json()
+                if "odata.error" in response:
+                    raise Exception(response)
+
+                if response.get("value"):
+                    for value in response["value"]:
+
+                        # Since the type of object is unknown by us, we check the odata type and change subclass
+                        # This is hacky and works cause Python.
+                        odata = value["@odata.type"].lower()
+                        if odata.endswith("user"):
+                            self.__class__ = AADUser
+                        elif odata.endswith("group"):
+                            self.__class__ = AADGroup
+                        elif odata.endswith("serviceprincipal"):
+                            self.__class__ = AADServicePrincipal
+
+                        # If it ends up being something else, skip until implemented
+                        else:
+                            log.warning(
+                                f"Could not backfill {value['id']}: {odata} not yet implemented"
+                            )
+                            continue
+
+                        parsedVal = await self.parse(value)
+                        await sqlite_writer(
+                            self.ctx.output_dir / f"{self.__class__.__name__}.sqlite",
+                            parsedVal,
+                        )
+                        self.ctx._aad_results.update([self.__class__.__name__])
+                else:
+                    print(response)
+
+        # Exit session cleanly
+        await self.session.close()
+
+    async def query_objects(self):
+
+        # Prevent logging for each backfill item
+        log.info(f"Starting query for {self.__class__.__name__}")
+
+        self.session = aiohttp.ClientSession()
+        user_url = f"{self.base_url}{self.ctx.tenant_id}/{self.resource}"
 
         next_link = True
         while next_link:
@@ -100,7 +145,6 @@ class AADObject:
                 if "odata.error" in response:
                     raise Exception(response)
 
-                # If response contains value, it's normal enumeration...
                 if response.get("value"):
                     for value in response["value"]:
                         parsedVal = await self.parse(value)
@@ -113,24 +157,12 @@ class AADObject:
                         user_url = f"{self.base_url}/{self.tenant_id}/{response['odata.nextLink']}"
                     else:
                         next_link = False
-                # ... or else it's backfill
-                else:
-                    parsedVal = await self.parse(response)
-                    await sqlite_writer(
-                        self.ctx.output_dir / f"{self.__class__.__name__}.sqlite",
-                        parsedVal,
-                    )
-                    self.ctx._aad_results.update([self.__class__.__name__])
-
-                    next_link = False
 
         # Finish cleanly
         await self.session.close()
         self._token_event.token_refresh_task.cancel()
 
-        # Prevent logging for each backfill item
-        if not object_id:
-            log.info(f"Finished query for {self.__class__.__name__}")
+        log.info(f"Finished query for {self.__class__.__name__}")
 
 
 @dataclass
@@ -247,24 +279,7 @@ async def query_aad(ctx: CollectorContext, backfills: dict = None):
             # If in backfill mode, we only need to query for objects with RBAC permissions
             # Otherwise, do complete enumeration
             if backfills:
-                await asyncio.gather(
-                    list(
-                        chain(
-                            [
-                                AADUser(ctx=ctx).query_objects(obj)
-                                for obj in backfills["User"]
-                            ],
-                            [
-                                AADGroup(ctx=ctx).query_objects(obj)
-                                for obj in backfills["Group"]
-                            ],
-                            [
-                                AADServicePrincipal(ctx=ctx).query_objects(obj)
-                                for obj in backfills["ServicePrincipal"]
-                            ],
-                        )
-                    )
-                )
+                await asyncio.gather(AADObject(ctx).get_objects_by_id(backfills))
             else:
                 await asyncio.gather(
                     *[aad_type(ctx).query_objects() for aad_type in aad_types]
