@@ -1,16 +1,16 @@
-from itertools import islice
 import sys
+from itertools import islice
 from pathlib import Path
 from typing import Counter, Dict, List, Union
 
 import aiosqlite
 import msgpack
-from rich.console import RenderGroup
-from rich.table import Table
-from rich.layout import Layout
 from rich import box
-from rich.panel import Panel
 from rich.columns import Columns
+from rich.console import RenderGroup
+from rich.layout import Layout
+from rich.panel import Panel
+from rich.table import Table
 
 
 def proactor_win32_patch(event):
@@ -22,6 +22,13 @@ def proactor_win32_patch(event):
         pass
     else:
         sys.__unraisablehook__(event)
+
+
+def get_all_subclasses(cls):
+    """Returns all subclasses of an object recursively"""
+    return set(cls.__subclasses__()).union(
+        [s for c in cls.__subclasses__() for s in get_all_subclasses(c)]
+    )
 
 
 async def sqlite_writer(output: Path, res):

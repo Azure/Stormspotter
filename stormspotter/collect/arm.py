@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import time
 import xml
 
 import aiohttp
@@ -9,6 +10,7 @@ from azure.mgmt.resource.resources.aio import ResourceManagementClient
 from azure.mgmt.resource.subscriptions.aio import SubscriptionClient
 from azure.mgmt.resource.subscriptions.models import Subscription
 from rich import print, print_json
+
 from stormspotter.collect.enums import EnumMode
 
 from .aad import rbac_backfill
@@ -20,6 +22,7 @@ log = logging.getLogger("rich")
 
 async def _query_rbac(ctx: CollectorContext, sub: Subscription):
     """Query RBAC permissions on a subscription and resources below it"""
+    start_time = time.time()
 
     log.info(f"Enumerating RBAC permissions for subscription: {sub.subscription_id}")
 
@@ -45,12 +48,15 @@ async def _query_rbac(ctx: CollectorContext, sub: Subscription):
                 roles.append(role_dict)
             except Exception as ex:
                 log.error(ex)
-        log.info(f"Finishing rbac permissions for subscription: {sub.subscription_id}")
+        log.info(
+            f"Finishing rbac permissions for subscription: {sub.subscription_id} ({time.time() - start_time} sec)"
+        )
         return roles
 
 
 async def _query_management_certs(ctx: CollectorContext, sub: Subscription):
     """Checks for management certs on subscriptions"""
+    start_time = time.time()
 
     log.info(f"Enumerating management certs for subscription: {sub.subscription_id}")
     headers = {"x-ms-version": "2012-03-01"}
@@ -85,13 +91,14 @@ async def _query_management_certs(ctx: CollectorContext, sub: Subscription):
             )
 
     log.info(
-        f"Finished management certs enumeration for subscription: {sub.subscription_id}"
+        f"Finished management certs enumeration for subscription: {sub.subscription_id} ({time.time() - start_time} sec)"
     )
     return certs
 
 
 async def _query_subscription(ctx: CollectorContext, sub: Subscription):
     """Query a subscription and its resources"""
+    start_time = time.time()
 
     log.info(f"Querying for resources in subscription - {sub.subscription_id}")
     async with ResourceManagementClient(
@@ -133,7 +140,9 @@ async def _query_subscription(ctx: CollectorContext, sub: Subscription):
             else:
                 log.warning(f"Could not access - {resource}")
 
-    log.info(f"Finished querying - {sub.subscription_id}")
+    log.info(
+        f"Finished querying subscription - {sub.subscription_id} ({time.time() - start_time} sec)"
+    )
 
 
 async def query_arm(ctx: CollectorContext) -> None:

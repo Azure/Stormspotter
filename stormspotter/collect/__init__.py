@@ -24,5 +24,5 @@ logging.basicConfig(
 )
 
 # Reduce Azure HTTP logging
-azure_logger = logging.getLogger("azure")
-azure_logger.setLevel(logging.WARNING)
+logging.getLogger("azure").setLevel(logging.WARNING)
+logging.getLogger("aiosqlite").setLevel(logging.WARNING)
