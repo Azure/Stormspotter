@@ -156,61 +156,59 @@ async def query_arm(ctx: CollectorContext) -> None:
 
         # Go through available tenants
         async for tenant in sub_client.tenants.list():
-            log.info(
-                f"Enumerating subscription and resource groups for tenant {tenant.tenant_id}"
-            )
+            log.info(f"Found tenant {tenant.tenant_id}")
             await sqlite_writer(ctx.output_dir / "tenant.sqlite", tenant.as_dict())
 
-            # Get list of subscriptions
-            # Check if include subs was passed. If so, only use those.
-            # If exclude_subs is also passed, do not add if in passed list
-            sub_list = []
-            async for subscription in sub_client.subscriptions.list():
-                if ctx.include_subs:
-                    if not subscription.subscription_id in ctx.include_subs:
-                        continue
+        # Get list of subscriptions
+        # Check if include subs was passed. If so, only use those.
+        # If exclude_subs is also passed, do not add if in passed list
+        # Finally, if sub in not wanted tenants, then move on
+        sub_list = []
+        async for subscription in sub_client.subscriptions.list():
+            if ctx.include_subs:
+                if not subscription.subscription_id in ctx.include_subs:
+                    continue
 
-                if ctx.exclude_subs:
-                    if subscription.subscription_id in ctx.exclude_subs:
-                        continue
+            if ctx.exclude_subs:
+                if subscription.subscription_id in ctx.exclude_subs:
+                    continue
 
-                sub_list.append(subscription)
-                await sqlite_writer(
-                    ctx.output_dir / "subscriptions.sqlite",
-                    orjson.dumps(sub_list, default=lambda x: x.as_dict()).decode(),
-                )
+            sub_list.append(subscription)
+            await sqlite_writer(
+                ctx.output_dir / "subscriptions.sqlite",
+                orjson.dumps(sub_list, default=lambda x: x.as_dict()).decode(),
+            )
 
-            if not sub_list:
-                log.error(f"No subscriptions found for {tenant.tenant_id}")
-                continue
+        if not sub_list:
+            log.error(f"No subscriptions found")
+            return
 
-            # Check for management certs
-            certsTasks = [
-                asyncio.create_task(_query_management_certs(ctx, sub))
-                for sub in sub_list
-            ]
-            certs_output = ctx.output_dir / f"management_certs.sqlite"
+        # Check for management certs
+        certsTasks = [
+            asyncio.create_task(_query_management_certs(ctx, sub)) for sub in sub_list
+        ]
+        certs_output = ctx.output_dir / f"management_certs.sqlite"
 
-            for cert in asyncio.as_completed(*[certsTasks]):
-                if await cert:
-                    await sqlite_writer(certs_output, cert)
+        for cert in asyncio.as_completed(*[certsTasks]):
+            if await cert:
+                await sqlite_writer(certs_output, cert)
 
-            # Enumerate RBAC
-            rbac_output = ctx.output_dir / "rbac.sqlite"
+        # Enumerate RBAC
+        rbac_output = ctx.output_dir / "rbac.sqlite"
 
-            # List of object IDs to hold for AAD enumeration
-            aad_backfills = set()
-            rbacTasks = [asyncio.create_task(_query_rbac(ctx, sub)) for sub in sub_list]
-            for task in asyncio.as_completed(*[rbacTasks]):
-                if roles := await task:
-                    for role in roles:
-                        await sqlite_writer(rbac_output, role)
-                        if ctx.backfill:
-                            aad_backfills.add(role["principal_id"])
+        # List of object IDs to hold for AAD enumeration
+        aad_backfills = set()
+        rbacTasks = [asyncio.create_task(_query_rbac(ctx, sub)) for sub in sub_list]
+        for task in asyncio.as_completed(*[rbacTasks]):
+            if roles := await task:
+                for role in roles:
+                    await sqlite_writer(rbac_output, role)
+                    if ctx.backfill:
+                        aad_backfills.add(role["principal_id"])
 
-            # We only need to backfill if only ARM and backfill are passed
-            if ctx.mode == EnumMode.ARM and ctx.backfill:
-                await rbac_backfill(ctx, list(aad_backfills))
+        # We only need to backfill if only ARM and backfill are passed
+        if ctx.mode == EnumMode.ARM and ctx.backfill:
+            await rbac_backfill(ctx, list(aad_backfills))
 
         # Enumerate subscriptions
         subTasks = [

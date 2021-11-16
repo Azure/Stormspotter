@@ -78,7 +78,7 @@ def gen_results_tables(aad_results: Counter, arm_results: Counter) -> RenderGrou
         tables.append(
             Panel.fit(
                 aad_table,
-                title="[bold yellow]AAD Results[/]",
+                title=f"[bold yellow]AAD Results (Total: {sum(aad_results.values())})[/]",
                 border_style="bold blue",
                 style="bold yellow",
             )
@@ -110,7 +110,7 @@ def gen_results_tables(aad_results: Counter, arm_results: Counter) -> RenderGrou
                     expand=True,
                     equal=True,
                 ),
-                title="[bold yellow]ARM Results[/]",
+                title=f"[bold yellow]ARM Results (Total: {sum(arm_results.values())})[/]",
                 border_style="bold blue",
             )
         )

@@ -121,7 +121,7 @@ class AADObject:
                         )
                         self.ctx._aad_results.update([self.__class__.__name__])
                 else:
-                    print(response)
+                    log.error(response)
 
         # Exit session cleanly
         await self.session.close()
@@ -186,7 +186,6 @@ class AADApplication(AADObject):
         # https://docs.microsoft.com/en-us/troubleshoot/azure/active-directory/verify-first-party-apps-sign-in
         if not value.get("appOwnerOrganizationId") in [
             "f8cdef31-a31e-4b4a-93e4-5f571e91255a",
-            "72f988bf-86f1-41af-91ab-2d7cd011db47",
         ]:
             owners = await self.expand(
                 value.get("objectId") or value.get("id"), "owners"
@@ -294,5 +293,9 @@ async def query_aad(ctx: CollectorContext, backfills: dict = None):
 
 async def rbac_backfill(ctx: CollectorContext, backfills: dict):
     log.info("Performing ARM RBAC backfill enumeration on AAD")
+    start_time = time.time()
+
     await query_aad(ctx, backfills)
-    log.info("Completed ARM RBAC backfill enumeration")
+    log.info(
+        f"Completed ARM RBAC backfill enumeration ({time.time() - start_time} sec)"
+    )

@@ -84,11 +84,11 @@ def azcli(
         help="Perform AAD enumeration only for ARM RBAC object IDs",
         metavar="",
     ),
-    include_subs: List[str] = typer.Option(
-        [], "--include-subs", "-i", help="Only scan specific subscriptions", metavar=""
+    include_sub: List[str] = typer.Option(
+        [], "--include-subs", "-is", help="Only scan specific subscriptions", metavar=""
     ),
-    exclude_subs: List[str] = typer.Option(
-        [], "--exclude-subs", "-e", help="Exclude specific subscriptions", metavar=""
+    exclude_sub: List[str] = typer.Option(
+        [], "--exclude-subs", "-es", help="Exclude specific subscriptions", metavar=""
     ),
 ):
     """Authenticate and run with Azure CLI credentials"""
@@ -96,5 +96,5 @@ def azcli(
     cred = AzureCliCredential()
 
     ctx.obj["ctx"] = CollectorContext(
-        cred, cloud._cloud, mode, backfill, include_subs, exclude_subs
+        cred, cloud._cloud, mode, backfill, include_sub, exclude_sub
     )
