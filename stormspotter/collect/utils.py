@@ -1,4 +1,3 @@
-import sys
 from itertools import islice
 from pathlib import Path
 from typing import Counter, Dict, List, Union
@@ -8,20 +7,8 @@ import msgpack
 from rich import box
 from rich.columns import Columns
 from rich.console import RenderGroup
-from rich.layout import Layout
 from rich.panel import Panel
 from rich.table import Table
-
-
-def proactor_win32_patch(event):
-    """Ignores Proactor loop errors on Windows"""
-    if (
-        event.exc_type == RuntimeError
-        and str(event.exc_value) == "Event loop is closed"
-    ):
-        pass
-    else:
-        sys.__unraisablehook__(event)
 
 
 def get_all_subclasses(cls):

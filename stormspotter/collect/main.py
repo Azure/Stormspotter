@@ -1,6 +1,8 @@
 import asyncio
 import logging
+import shutil
 import time
+from tarfile import TarFile
 from typing import Any, List
 
 import click
@@ -51,10 +53,15 @@ def _begin_run(ctx: typer.Context, result: Any):
     if collector_ctx.cred:
         start_time = time.time()
         asyncio.run(start_collect(collector_ctx))
+
         log.info(f"--- COMPLETION TIME: {time.time() - start_time} seconds\n")
+        with TarFile.open(f"{collector_ctx.output_dir}.tar.xz", mode="w:xz") as tf:
+            tf.add(collector_ctx.output_dir)
+
         print(
             gen_results_tables(collector_ctx._aad_results, collector_ctx._arm_results),
         )
+        shutil.rmtree(collector_ctx.output_dir)
 
 
 @app.callback(result_callback=_begin_run)

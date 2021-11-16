@@ -114,5 +114,4 @@ test_*
 .vscode/
 .DS_Store
 results*/
-stormcollector.zip
-sscollector.pyz
+*.xz
