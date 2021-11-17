@@ -24,14 +24,14 @@ CLOUD_MAP = {
         "MGMT": "https://management.core.cloudapi.de",
     },
     "CHINA": {
-        "AD": identity.KnownAuthorities.AZURE_PUBLIC_CLOUD,
+        "AD": identity.KnownAuthorities.AZURE_CHINA,
         "AAD": "https://graph.chinacloudapi.cn",
         "ARM": "https://management.chinacloudapi.cn",
         "GRAPH": "https://microsoftgraph.chinacloudapi.cn",
         "MGMT": "https://management.core.chinacloudapi.cn",
     },
     "USGOV": {
-        "AD": identity.KnownAuthorities.AZURE_PUBLIC_CLOUD,
+        "AD": identity.KnownAuthorities.AZURE_GOVERNMENT,
         "AAD": "https://graph.windows.net",
         "ARM": "https://management.usgovcloudapi.net",
         "GRAPH": "https://graph.microsoft.us/",
@@ -42,7 +42,10 @@ CLOUD_MAP = {
 
 class Context:
     def __init__(
-        self, args: Namespace, cloud: dict, authenticatedCreds: Tuple[Any],
+        self,
+        args: Namespace,
+        cloud: dict,
+        authenticatedCreds: Tuple[Any],
     ):
         self.args = args
         self.cloud = cloud
