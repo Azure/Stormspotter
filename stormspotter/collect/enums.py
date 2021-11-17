@@ -1,11 +1,7 @@
 from enum import Enum
 
-from msrestazure.azure_cloud import (
-    AZURE_CHINA_CLOUD,
-    AZURE_GERMAN_CLOUD,
-    AZURE_PUBLIC_CLOUD,
-    AZURE_US_GOV_CLOUD,
-)
+from msrestazure.azure_cloud import (AZURE_CHINA_CLOUD, AZURE_GERMAN_CLOUD,
+                                     AZURE_PUBLIC_CLOUD, AZURE_US_GOV_CLOUD)
 
 
 class Cloud(str, Enum):
