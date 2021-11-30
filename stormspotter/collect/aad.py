@@ -27,7 +27,9 @@ class _TokenEvent(asyncio.Event):
     ):
         """Background task to get new token before access token expiration."""
         while True:
-            self.currentToken = await ctx.cred.get_token(base_url + "/.default")
+            self.currentToken = await ctx.cred.get_token(
+                base_url + "/.default", tenant_id=ctx.tenant_id
+            )
 
             # Set event to resume enumeration
             self.set()
@@ -42,10 +44,12 @@ class _TokenEvent(asyncio.Event):
 
             # Check to see if expiration has passed yet. Refresh after expiration to be safe.
             scope = base_url + "/.default"
-            self.currentToken = await ctx.cred.get_token(scope)
+            self.currentToken = await ctx.cred.get_token(scope, tenant_id=ctx.tenant_id)
             while self.currentToken.expires_on < int(time.time()):
                 await asyncio.sleep(5)
-                self.currentToken = await ctx.cred.get_token(scope)
+                self.currentToken = await ctx.cred.get_token(
+                    scope, tenant_id=ctx.tenant_id
+                )
 
             log.info(f"Resuming {objName} enumeration...")
 
@@ -66,9 +70,7 @@ class AADObject:
         return value
 
     async def expand(self, resource_id: str, prop: str) -> Dict[str, Any]:
-        user_url = (
-            f"{self.base_url}{self.ctx.tenant_id}/{self.resource}/{resource_id}/{prop}"
-        )
+        user_url = f"{self.base_url}beta/{self.resource}/{resource_id}/{prop}"
         log.debug(user_url)
         headers = {"Authorization": f"Bearer {self._token_event.currentToken.token}"}
         async with self.session.get(user_url, headers=headers) as expanded:
@@ -78,7 +80,7 @@ class AADObject:
         """Get directory object by id. Only used when backfilling"""
 
         self.session = aiohttp.ClientSession()
-        user_url = f"{self.base_url}{self.ctx.tenant_id}/directoryObjects/getByIds"
+        user_url = f"{self.base_url}beta/directoryObjects/getByIds"
 
         # We can only get 1000 at a time so split up
         for group in chunk(object_ids, 1000):
@@ -131,9 +133,7 @@ class AADObject:
         log.info(f"Starting query for {self.__class__.__name__}")
 
         self.session = aiohttp.ClientSession()
-        user_url = (
-            f"{self.base_url}{self.ctx.tenant_id}/{self.resource}?{self.query_params}"
-        )
+        user_url = f"{self.base_url}beta/{self.resource}?{self.query_params}"
 
         next_link = True
         while next_link:
@@ -262,7 +262,7 @@ async def query_aad(ctx: CollectorContext, backfills: dict = None):
     GRAPH_URL = ctx.cloud.endpoints.microsoft_graph_resource_id
 
     log.info(f"Checking access for Microsoft Graph: {GRAPH_URL}")
-    token = await ctx.cred.get_token(f"{GRAPH_URL}/.default")
+    token = await ctx.cred.get_token(f"{GRAPH_URL}/.default", tenant_id=ctx.tenant_id)
     headers = {"Authorization": f"Bearer {token.token}"}
 
     async with aiohttp.ClientSession(headers=headers) as session:
@@ -275,10 +275,8 @@ async def query_aad(ctx: CollectorContext, backfills: dict = None):
             response = await resp.json()
 
             # If odata.error is in response, no access to MS Graph. Abort AAD enumeration.
-            if "odata.error" in response:
-                log.error(
-                    f"{GRAPH_URL} - {response['odata.error']['code']} - {response['odata.error']['message']['value']}"
-                )
+            if response.get("error"):
+                log.error(f"{GRAPH_URL} - {response}")
                 return await session.close()
 
             # If in backfill mode, we only need to query for objects with RBAC permissions

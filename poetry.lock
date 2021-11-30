@@ -29,6 +29,14 @@ neo4j = "<4.3.0"
 agensgraph = ["agensgraph", "aiopg", "async-exit-stack"]
 
 [[package]]
+name = "aiofiles"
+version = "0.7.0"
+description = "File support for asyncio."
+category = "main"
+optional = false
+python-versions = ">=3.6,<4.0"
+
+[[package]]
 name = "aiohttp"
 version = "3.8.1"
 description = "Async http client/server framework (asyncio)"
@@ -693,7 +701,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "88128ae7ac0ebacf46fbd14bf2d5d751b1a7745d84e8a592635f4677255ae631"
+content-hash = "f1902243b76016273ebe6219809be0442556490543adb2f754abc77fd3ac4ce3"
 
 [metadata.files]
 adal = [
@@ -703,6 +711,10 @@ adal = [
 aiocypher = [
     {file = "aiocypher-0.1.1-py3-none-any.whl", hash = "sha256:502a8544f2c402709b56748fe354e58de0d26ed039e8ce0c34b02d096037777b"},
     {file = "aiocypher-0.1.1.tar.gz", hash = "sha256:1333240d4e898b6f7c71d6840e87b6e34272acb1136980bb866c74d3fb4b3d47"},
+]
+aiofiles = [
+    {file = "aiofiles-0.7.0-py3-none-any.whl", hash = "sha256:c67a6823b5f23fcab0a2595a289cec7d8c863ffcb4322fb8cd6b90400aedfdbc"},
+    {file = "aiofiles-0.7.0.tar.gz", hash = "sha256:a1c4fc9b2ff81568c83e21392a82f344ea9d23da906e4f6a52662764545e19d4"},
 ]
 aiohttp = [
     {file = "aiohttp-3.8.1-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:1ed0b6477896559f17b9eaeb6d38e07f7f9ffe40b9f0f9627ae8b9926ae260a8"},

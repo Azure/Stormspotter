@@ -7,7 +7,7 @@ from typing import Any, List
 
 import click
 import typer
-from azure.identity.aio import AzureCliCredential
+from azure.identity.aio import AzureCliCredential, VisualStudioCodeCredential
 from rich import print
 
 from .aad import query_aad
@@ -17,9 +17,9 @@ from .enums import Cloud, EnumMode
 from .utils import gen_results_tables
 
 app = typer.Typer(
-    name="Stormspotter Collector CLI",
     context_settings={"help_option_names": ["-h", "--help"]},
     add_completion=False,
+    help="Collection commands",
 )
 
 log = logging.getLogger("rich")
@@ -75,6 +75,7 @@ def main(ctx: typer.Context):
 @app.command()
 def azcli(
     ctx: typer.Context,
+    tenant_id: str = typer.Option("", "--tenant", "-t", help="Tenant ID"),
     cloud: Cloud = typer.Option(
         Cloud.PUBLIC, "--cloud", help="Cloud environment", metavar=""
     ),
@@ -103,5 +104,53 @@ def azcli(
     cred = AzureCliCredential()
 
     ctx.obj["ctx"] = CollectorContext(
-        cred, cloud._cloud, mode, backfill, include_sub, exclude_sub
+        cred,
+        cloud._cloud,
+        mode,
+        backfill,
+        include_sub,
+        exclude_sub,
+        tenant_id=tenant_id,
+    )
+
+
+@app.command()
+def vscode(
+    ctx: typer.Context,
+    tenant_id: str = typer.Option("", "--tenant", "-t", help="Tenant ID"),
+    cloud: Cloud = typer.Option(
+        Cloud.PUBLIC, "--cloud", help="Cloud environment", metavar=""
+    ),
+    mode: EnumMode = typer.Option(
+        EnumMode.BOTH,
+        "--mode",
+        help="AAD, ARM, or both",
+        metavar="",
+        case_sensitive=False,
+    ),
+    backfill: bool = typer.Option(
+        False,
+        "--backfill",
+        help="Perform AAD enumeration only for ARM RBAC object IDs",
+        metavar="",
+    ),
+    include_sub: List[str] = typer.Option(
+        [], "--include-subs", "-is", help="Only scan specific subscriptions", metavar=""
+    ),
+    exclude_sub: List[str] = typer.Option(
+        [], "--exclude-subs", "-es", help="Exclude specific subscriptions", metavar=""
+    ),
+):
+    """Authenticate and run with VS Code credentials"""
+    log.info("Attempting to login with VS Code credentials...")
+    cred = VisualStudioCodeCredential(tenant_id=tenant_id)
+
+    ctx.obj["ctx"] = CollectorContext(
+        cred,
+        cloud._cloud,
+        mode,
+        backfill,
+        include_sub,
+        exclude_sub,
+        tenant_id=tenant_id,
     )
