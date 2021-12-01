@@ -71,7 +71,6 @@ class AADObject:
 
     async def expand(self, resource_id: str, prop: str) -> Dict[str, Any]:
         user_url = f"{self.base_url}beta/{self.resource}/{resource_id}/{prop}"
-        log.debug(user_url)
         headers = {"Authorization": f"Bearer {self._token_event.currentToken.token}"}
         async with self.session.get(user_url, headers=headers) as expanded:
             return await expanded.json()
@@ -142,7 +141,6 @@ class AADObject:
             headers = {
                 "Authorization": f"Bearer {self._token_event.currentToken.token}"
             }
-            log.debug(user_url)
             async with self.session.get(user_url, headers=headers) as resp:
                 response = await resp.json()
                 if response.get("@odata.error"):
@@ -217,7 +215,7 @@ class AADRole(AADObject):
     query_params: str = ""
 
     async def parse(self, value):
-        members = await self.expand(value.get("objectId"), "members")
+        members = await self.expand(value.get("id"), "members")
         member_ids = []
 
         if members.get("value"):

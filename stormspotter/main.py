@@ -7,6 +7,7 @@ import typer
 from aiocypher import Config
 from aiocypher.aioneo4j.driver import Driver
 from rich import inspect, print
+from rich.logging import RichHandler
 
 from .collect import main as collect_main
 from .ingest.ingestion import start_parsing
@@ -19,6 +20,23 @@ app = typer.Typer(
 
 # Adding subcommand apps
 app.add_typer(collect_main.app, name="collect")
+
+
+@app.callback()
+def main(
+    ctx: typer.Context,
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose/Debug output"),
+):
+    """
+    Stormspotter Collector CLI.
+    """
+    ctx.ensure_object(dict)
+    logging.basicConfig(
+        level=logging.DEBUG if verbose else logging.INFO,
+        format="%(message)s",
+        datefmt="[%X]",
+        handlers=[RichHandler(rich_tracebacks=True, markup=True)],
+    )
 
 
 @app.command(help="Ingest results into neo4j")

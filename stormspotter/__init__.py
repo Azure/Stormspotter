@@ -2,7 +2,6 @@ import logging
 import sys
 
 from rich import pretty, traceback
-from rich.logging import RichHandler
 
 from .utils import proactor_win32_patch
 
@@ -16,9 +15,7 @@ elif sys.platform == "win32":
 traceback.install()
 pretty.install()
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(message)s",
-    datefmt="[%X]",
-    handlers=[RichHandler(rich_tracebacks=True, markup=True)],
-)
+# Reduce some logging
+# Reduce Azure HTTP logging
+logging.getLogger("azure").setLevel(logging.WARNING)
+logging.getLogger("aiosqlite").setLevel(logging.WARNING)

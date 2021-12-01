@@ -9,6 +9,7 @@ import click
 import typer
 from azure.identity.aio import AzureCliCredential, VisualStudioCodeCredential
 from rich import print
+from rich.logging import RichHandler
 
 from .aad import query_aad
 from .arm import query_arm
@@ -55,13 +56,16 @@ def _begin_run(ctx: typer.Context, result: Any):
         asyncio.run(start_collect(collector_ctx))
 
         log.info(f"--- COMPLETION TIME: {time.time() - start_time} seconds\n")
+
+        # Create results tar file
         with TarFile.open(f"{collector_ctx.output_dir}.tar.xz", mode="w:xz") as tf:
             tf.add(collector_ctx.output_dir)
+        shutil.rmtree(collector_ctx.output_dir)
 
+        log.info(f"--- Results saved to {collector_ctx.output_dir}.tar.xz ---")
         print(
             gen_results_tables(collector_ctx._aad_results, collector_ctx._arm_results),
         )
-        shutil.rmtree(collector_ctx.output_dir)
 
 
 @app.callback(result_callback=_begin_run)
