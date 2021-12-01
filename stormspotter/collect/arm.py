@@ -176,7 +176,7 @@ async def query_arm(ctx: CollectorContext) -> None:
             sub_list.append(subscription)
             await sqlite_writer(
                 ctx.output_dir / "subscription.sqlite",
-                orjson.dumps(sub_list, default=lambda x: x.as_dict()).decode(),
+                subscription.as_dict(),
             )
 
         if not sub_list:

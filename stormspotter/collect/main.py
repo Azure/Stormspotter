@@ -75,7 +75,6 @@ def main(ctx: typer.Context):
 @app.command()
 def azcli(
     ctx: typer.Context,
-    tenant_id: str = typer.Option("", "--tenant", "-t", help="Tenant ID"),
     cloud: Cloud = typer.Option(
         Cloud.PUBLIC, "--cloud", help="Cloud environment", metavar=""
     ),
@@ -110,14 +109,13 @@ def azcli(
         backfill,
         include_sub,
         exclude_sub,
-        tenant_id=tenant_id,
     )
 
 
 @app.command()
 def vscode(
     ctx: typer.Context,
-    tenant_id: str = typer.Option("", "--tenant", "-t", help="Tenant ID"),
+    tenant_id: str = typer.Option("", "--tenant", "-t", help="Tenant ID", metavar=""),
     cloud: Cloud = typer.Option(
         Cloud.PUBLIC, "--cloud", help="Cloud environment", metavar=""
     ),

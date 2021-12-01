@@ -1,8 +1,7 @@
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Counter, List, Union, Optional
-from uuid import UUID
+from typing import Counter, List, Optional, Union
 
 from azure.identity import AzureCliCredential, ClientSecretCredential
 from msrestazure.azure_cloud import Cloud
