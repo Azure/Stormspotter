@@ -2,8 +2,7 @@ import json
 import logging
 from enum import Enum, auto
 from operator import attrgetter
-from typing import (Any, ClassVar, Dict, Iterable, Iterator, List, Optional,
-                    Tuple, Union)
+from typing import Any, ClassVar, Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
 from pydantic import BaseConfig, BaseModel, Field, validator
 from pydantic.class_validators import Validator
@@ -47,10 +46,33 @@ class RelationLabels(Enum):
     Trusts = auto()
 
 
+class Relationship(BaseModel):
+    """Relationship model"""
+
+    source: str
+    source_label: str
+    target: str
+    target_label: str
+    relation: RelationLabels
+    properties: Optional[Dict[str, Any]]
+
+    @validator("properties", pre=True, always=True)
+    def format_properties(cls, props: Any):
+        """Convert DynamicObject to dict"""
+        if isinstance(props, dict):
+            return props
+        elif isinstance(props, DynamicObject):
+            return props.__dict__
+
+    def to_neo(self) -> Dict[str, Any]:
+        """Node representation safe for Neo4j"""
+        return self.dict(exclude={"properties"})
+
+
 class Node(BaseModel):
     """Base model for all nodes"""
 
-    _relationships: List["Relationship"] = PrivateAttr(default_factory=list)
+    _relationships: List[Relationship] = PrivateAttr(default_factory=list)
 
     # A. Ignore all extra fields
     # B. Encode DynamicObject by getting the __dict__
@@ -58,9 +80,9 @@ class Node(BaseModel):
         extra = "ignore"
         json_encoders = {DynamicObject: lambda v: v.__dict__}
 
-    def __relationships__(self) -> Iterator["Relationship"]:
+    def __relationships__(self) -> List["Relationship"]:
         """Override this method to define relationships for resource object."""
-        yield []
+        return
 
     @classmethod
     def _labels(cls) -> List[str]:
@@ -72,7 +94,7 @@ class Node(BaseModel):
         elif label in ["AADObject", "ARMResource"]:
             return [label.upper()]
         else:
-            return [label.upper(), cls.__mro__[1].__name__.upper()]
+            return [cls.__mro__[1].__name__.upper(), label.upper()]
 
     @property
     def label(self) -> str:
@@ -90,29 +112,6 @@ class Node(BaseModel):
             return None
 
 
-class Relationship(BaseModel):
-    """Relationship model"""
-
-    source: str
-    source_label: List[str]
-    target: str
-    target_label: List[str]
-    relation: RelationLabels
-    properties: Optional[Dict[str, Any]]
-
-    @validator("properties", pre=True, always=True)
-    def format_properties(cls, props: Any):
-        """Convert DynamicObject to dict"""
-        if isinstance(props, dict):
-            return props
-        elif isinstance(props, DynamicObject):
-            return props.__dict__
-
-    def to_neo(self) -> Dict[str, Any]:
-        """Node representation safe for Neo4j"""
-        return self.dict()
-
-
 ####--- AAD RELATED MODELS ---###
 class AADObject(Node):
     """Base Neo4JModel for AAD objects"""
@@ -128,10 +127,10 @@ class AADObject(Node):
         for owner in getattr(self, "owners", []):
             self._relationships.append(
                 Relationship(
-                    source=self.id,
-                    source_label=self._labels(),
-                    target=owner,
-                    target_label=AADObject._labels(),
+                    source=owner,
+                    source_label=self._labels()[0],
+                    target=self.id,
+                    target_label=self._labels()[0],
                     relation=RelationLabels.Owns,
                 )
             )
@@ -141,14 +140,14 @@ class AADObject(Node):
             self._relationships.append(
                 Relationship(
                     source=member,
-                    source_label=AADObject._labels(),
+                    source_label=AADObject._labels()[0],
                     target=self.id,
-                    target_label=self._labels(),
+                    target_label=self._labels()[0],
                     relation=RelationLabels.MemberOf,
                 )
             )
-
-        self._relationships.extend(self.__relationships__())
+        if additional_rels := self.__relationships__():
+            self._relationships.extend(additional_rels)
 
     def to_neo(self) -> Dict[str, Any]:
         """Node representation safe for Neo4j"""
@@ -249,14 +248,15 @@ class ARMResource(Node):
             self._relationships.append(
                 Relationship(
                     source=self.resourcegroup,
-                    source_label=ResourceGroup._labels(),
+                    source_label=ResourceGroup._labels()[0],
                     target=self.id,
-                    target_label=self._labels(),
+                    target_label=self._labels()[0],
                     relation=RelationLabels.Contains,
                 )
             )
 
-        self._relationships.extend(self.__relationships__())
+        if additional_rels := self.__relationships__():
+            self._relationships.extend(additional_rels)
 
     @property
     def subscription(self) -> str:
@@ -328,16 +328,20 @@ class KeyVault(ARMResource):
         "vaultUri",
     ]
 
-    def __relationships__(self) -> Iterator[Relationship]:
+    def __relationships__(self) -> List[Relationship]:
+        relations = []
         for policy in self.properties.accessPolicies:
-            yield Relationship(
-                source=policy.objectId,
-                source_label=AADObject._labels(),
-                target=self.id,
-                target_label=self._labels(),
-                relation=RelationLabels.HasAccessPolicies,
-                properties=policy.permissions,
+            relations.append(
+                Relationship(
+                    source=policy.objectId,
+                    source_label=AADObject._labels()[0],
+                    target=self.id,
+                    target_label=self._labels()[0],
+                    relation=RelationLabels.HasAccessPolicies,
+                    properties=policy.permissions,
+                )
             )
+        return relations
 
 
 class StorageAccount(ARMResource):
@@ -357,7 +361,7 @@ def get_available_models() -> Dict[str, Node]:
 def get_all_labels() -> List[str]:
     """Returns a list of all labels from all available models"""
     models = AVAILABLE_MODELS
-    return sorted(list(set([model._labels()[0] for model in models.values()])))
+    return sorted(list(set([model._labels()[-1] for model in models.values()])))
 
 
 AVAILABLE_MODELS = get_available_models()
