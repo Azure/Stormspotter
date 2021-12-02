@@ -2,11 +2,10 @@ import json
 import logging
 from enum import Enum, auto
 from operator import attrgetter
-from typing import Any, ClassVar, Dict, Iterable, Iterator, List, Optional, Tuple, Union
+from typing import Any, ClassVar, Dict, List, Optional
 
-from pydantic import BaseConfig, BaseModel, Field, validator
-from pydantic.class_validators import Validator
-from pydantic.fields import ModelField, PrivateAttr
+from pydantic import BaseModel, Field, validator
+from pydantic.fields import PrivateAttr
 from rich import inspect, print
 
 from ..utils import qualname_base
@@ -80,7 +79,7 @@ class Node(BaseModel):
         extra = "ignore"
         json_encoders = {DynamicObject: lambda v: v.__dict__}
 
-    def __relationships__(self) -> List["Relationship"]:
+    def __relationships__(self) -> List[Relationship]:
         """Override this method to define relationships for resource object."""
         return
 
@@ -261,12 +260,12 @@ class ARMResource(Node):
     @property
     def subscription(self) -> str:
         """Get the subscription from the id"""
-        return self.id.split("/")[2] if "subscriptions" in self.id else None
+        return self.id.split("/resourceGroups")[0]
 
     @property
     def resourcegroup(self) -> str:
         """Get the resource group from the id"""
-        return self.id.split("/providers")[0] if "providers" in self.id else None
+        return self.id.split("/providers")[0]
 
     @validator("tags", pre=True, always=True)
     def convert_to_list(cls, dict_value: dict):
@@ -312,10 +311,36 @@ class Subscription(ARMResource):
     state: str
     managed_by_tenants: Optional[List[str]] = Field(default_factory=list)
 
+    def __relationships__(self) -> List[Relationship]:
+        relations = []
+        relations.append(
+            Relationship(
+                source="/tenants/" + self.tenant_id,
+                source_label=Tenant._labels()[0],
+                target=self.id,
+                target_label=self._labels()[0],
+                relation=RelationLabels.Contains,
+            )
+        )
+        return relations
+
 
 class ResourceGroup(ARMResource):
     __arm_type__ = "microsoft.resources/resourcegroups"
     __map_to_resourcegroup__: ClassVar[bool] = False
+
+    def __relationships__(self) -> List[Relationship]:
+        relations = []
+        relations.append(
+            Relationship(
+                source=self.subscription,
+                source_label=Subscription._labels()[0],
+                target=self.id,
+                target_label=self._labels()[0],
+                relation=RelationLabels.Contains,
+            )
+        )
+        return relations
 
 
 class KeyVault(ARMResource):
