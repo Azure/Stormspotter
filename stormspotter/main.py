@@ -68,4 +68,4 @@ def ingest(
 
     sqlite_files = list(results_dir.glob("*.sqlite"))
     neo4j_driver = Driver(Config(f"{server}:{port}", user, passwd))
-    asyncio.run(start_parsing(sqlite_files, neo4j_driver))
+    asyncio.run(start_parsing(sqlite_files, neo4j_driver), debug=True)

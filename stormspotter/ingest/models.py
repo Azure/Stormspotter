@@ -1,13 +1,14 @@
 import json
 import logging
 from enum import Enum, auto
-from typing import Any, ClassVar, Dict, Iterable, Iterator, List, Optional, Tuple, Union
+from operator import attrgetter
+from typing import (Any, ClassVar, Dict, Iterable, Iterator, List, Optional,
+                    Tuple, Union)
 
-from pydantic import BaseModel, validator, Field, BaseConfig
+from pydantic import BaseConfig, BaseModel, Field, validator
 from pydantic.class_validators import Validator
 from pydantic.fields import ModelField, PrivateAttr
-from rich import print, inspect
-from operator import attrgetter
+from rich import inspect, print
 
 from ..utils import qualname_base
 
@@ -77,7 +78,7 @@ class Node(BaseModel):
     def label(self) -> str:
         return qualname_base(self).upper()
 
-    def node(self) -> Dict[str, Any]:
+    def to_neo(self) -> Dict[str, Any]:
         """Node representation safe for Neo4j"""
         return self.dict(exclude={"properties"})
 
@@ -106,6 +107,10 @@ class Relationship(BaseModel):
             return props
         elif isinstance(props, DynamicObject):
             return props.__dict__
+
+    def to_neo(self) -> Dict[str, Any]:
+        """Node representation safe for Neo4j"""
+        return self.dict()
 
 
 ####--- AAD RELATED MODELS ---###
@@ -145,7 +150,7 @@ class AADObject(Node):
 
         self._relationships.extend(self.__relationships__())
 
-    def node(self) -> Dict[str, Any]:
+    def to_neo(self) -> Dict[str, Any]:
         """Node representation safe for Neo4j"""
         return self.dict(exclude={"owners", "members"}) | {
             "_relationships": self._relationships
@@ -356,3 +361,4 @@ def get_all_labels() -> List[str]:
 
 
 AVAILABLE_MODELS = get_available_models()
+AVAILABLE_MODEL_LABELS = get_all_labels()
