@@ -2,20 +2,20 @@ import asyncio
 import logging
 import re
 from pathlib import Path
+from sys import exc_info
 from typing import List
 from uuid import UUID
-
+import functools
 import aiosqlite
 import msgpack
 from aiocypher.aioneo4j import Driver
 from rich import print
 
 from .db import Neo4jDriver
-from .models import get_available_models
+from .models import AVAILABLE_MODELS
 
-MODELS = get_available_models()
-print(MODELS)
 log = logging.getLogger("rich")
+log.debug(AVAILABLE_MODELS)
 
 
 def is_uuid(value: str) -> bool:
@@ -26,37 +26,41 @@ def is_uuid(value: str) -> bool:
         return False
 
 
-async def process_file(file: Path) -> None:
+async def process_file(neo4j: Neo4jDriver, file: Path) -> None:
 
     # Process everything but sqlite files for subscriptions here
-    if model := MODELS.get(file.stem):
+    if model := AVAILABLE_MODELS.get(file.stem):
         async with aiosqlite.connect(file) as db:
+            log.debug(f"Processing {file.absolute()}...")
             async with db.execute("SELECT result from results") as cursor:
                 async for result in cursor:
                     obj_json = msgpack.loads(result[0])
                     try:
-                        model(**obj_json)
+                        m = model(**obj_json)
                     except Exception as e:
-                        log.error(e)
+                        log.error(e, exc_info=True)
                         print(obj_json)
     # Process UUID file names (subscriptions)
     elif is_uuid(file.stem):
         async with aiosqlite.connect(file) as db:
+            log.debug(f"Processing {file.absolute()}...")
             async with db.execute("SELECT result from results") as cursor:
                 async for result in cursor:
                     obj_json = msgpack.loads(result[0])
-                    if model := MODELS.get(obj_json["type"].lower()):
+                    if model := AVAILABLE_MODELS.get(obj_json["type"].lower()):
                         try:
                             m = model(**obj_json)
-                            print(m.node())
                         except Exception as e:
-                            log.error(e)
+                            log.error(e, exc_info=True)
                             print(obj_json)
+    log.debug(f"Finished processing {file.absolute()}...")
 
 
 async def start_parsing(files: List[Path], driver: Driver):
     neo4j = await Neo4jDriver(driver)
-    await neo4j.close()
 
-    for future in asyncio.as_completed(map(process_file, files)):
+    process_partial = functools.partial(process_file, neo4j)
+    for future in asyncio.as_completed(map(process_partial, files)):
         result = await future
+
+    await neo4j.close()

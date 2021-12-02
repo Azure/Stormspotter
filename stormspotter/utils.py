@@ -10,3 +10,7 @@ def proactor_win32_patch(event):
         pass
     else:
         sys.__unraisablehook__(event)
+
+
+def qualname_base(some_instance) -> str:
+    return some_instance.__qualname__.split(".")[-1]
