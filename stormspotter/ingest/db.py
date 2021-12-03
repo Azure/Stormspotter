@@ -1,10 +1,9 @@
 import asyncio
-from enum import Enum
 import logging
 from asyncio import Queue
+from enum import Enum
 
 from aiocypher.aioneo4j.driver import Driver
-import neo4j
 from neo4j.exceptions import AuthError, CypherSyntaxError
 from rich import inspect, print
 

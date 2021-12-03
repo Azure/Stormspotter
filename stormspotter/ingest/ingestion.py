@@ -1,9 +1,7 @@
 import asyncio
 import functools
 import logging
-import re
 from pathlib import Path
-from sys import exc_info
 from typing import List
 from uuid import UUID
 
@@ -12,6 +10,7 @@ import msgpack
 from aiocypher.aioneo4j import Driver
 from rich import print
 from rich.status import Status
+
 from .db import Neo4jDriver
 from .models import (
     AVAILABLE_MODELS,
