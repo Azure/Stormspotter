@@ -430,7 +430,7 @@ class StorageAccount(ARMResource):
 
 
 class VirtualMachine(ARMResource):
-    __arm_type__ = "microsoft.compute/virtualmachine"
+    __arm_type__ = "microsoft.compute/virtualmachines"
     __xfields__ = [
         "osProfile.computerName",
         "osProfile.adminUsername",
@@ -440,6 +440,17 @@ class VirtualMachine(ARMResource):
         "storageProfile.imageReference.offer",
         "storageProfile.imageReference.sku",
         "storageProfile.imageReference.exactVersion",
+    ]
+
+
+class VMExtension(ARMResource):
+    __arm_type__ = "microsoft.compute/virtualmachines/extensions"
+    __xfields__ = [
+        "autoUpgradeMinorVersion",
+        "publisher",
+        "type",
+        "typeHandlerVersion",
+        "settings",
     ]
 
 

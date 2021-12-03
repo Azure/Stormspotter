@@ -5,12 +5,12 @@ from asyncio import Queue
 
 from aiocypher.aioneo4j.driver import Driver
 import neo4j
-from neo4j.exceptions import AuthError
+from neo4j.exceptions import AuthError, CypherSyntaxError
 from rich import inspect, print
 
 from stormspotter.ingest.models import Node, Relationship
 
-from .models import AVAILABLE_MODEL_LABELS
+from .models import AVAILABLE_MODEL_LABELS, DynamicObject
 
 log = logging.getLogger("rich")
 
@@ -64,8 +64,11 @@ class Neo4jDriver:
                 statement = await self.queue.get()
                 log.debug(statement)
 
-                async with session.begin_transaction() as tx:
-                    await tx.run(statement)
+                try:
+                    async with session.begin_transaction() as tx:
+                        await tx.run(statement)
+                except CypherSyntaxError as e:
+                    log.error(e)
 
                 self.queue.task_done()
 
@@ -80,9 +83,14 @@ class Neo4jDriver:
 
         def check_type(x):
             """Check type to determine if value needs to be sanitized"""
-            return (
-                f"'{self.sanitize_string(x)}'" if (isinstance(x, str) or not x) else x
-            )
+            if isinstance(x, str) or not x:
+                return f"'{self.sanitize_string(x)}'"
+            elif isinstance(x, DynamicObject):
+
+                # Flatten the list with magic
+                d = x.__dict__
+                return [item for k in d for item in (k, d[k])]
+            return x
 
         set_statements_parts = []
 
