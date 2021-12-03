@@ -10,7 +10,6 @@ python = "^3.10"
 typer = "^0.4.0"
 aiohttp = "^3.8.1"
 rich = "^10.13.0"
-pydantic = "^1.8.2"
 msrestazure = "^0.6.4"
 azure-identity = "^1.7.1"
 uvloop = {version = "^0.16.0", platform = "linux"}
@@ -20,6 +19,7 @@ azure-mgmt-resource = "^20.0.0"
 azure-mgmt-authorization = "^2.0.0"
 aiocypher = "^0.1.1"
 aiofiles = "^0.7.0"
+pydantic = "^1.8.2"
 
 [tool.poetry.dev-dependencies]
 isort = "^5.10.1"

@@ -224,7 +224,7 @@ class ARMResource(Node):
     # Set this to lowercase value of ARM type for dynamic object creation
     # i.e., microsoft.keyvault/vaults
     __arm_type__: ClassVar[str] = ...
-    __xfields__: ClassVar[List[str]] = PrivateAttr(default_factory=list)
+    __xfields__: ClassVar[List[str]] = []
     __map_to_resourcegroup__: ClassVar[bool] = True
     __xdict__: Dict[str, Any] = PrivateAttr(default_factory=dict)
 
@@ -241,18 +241,13 @@ class ARMResource(Node):
         super().__init__(**data)
 
         # Grab the field from the properties and set it as it's own property
-        print(self.__xfields__)
-        if self.properties and self.__xfields__:
-            print(self.__arm_type__)
-            for field in self.__xfields__:
+
+        if self.properties and self.__class__.__xfields__:
+            for field in self.__class__.__xfields__:
                 try:
-                    print(field)
                     value = attrgetter(field)(self.properties)
                 except:
                     value = None
-
-                if "virtualmachines" in self.__arm_type__:
-                    print(field, value)
 
                 field_name = field.split(".")[-1]
                 self.__xdict__[field_name] = value
@@ -296,7 +291,7 @@ class ARMResource(Node):
         """Convert properties dictionary to dynamic object"""
         return DynamicObject.from_dict(dict_value)
 
-    def node(self) -> Dict[str, Any]:
+    def to_neo(self) -> Dict[str, Any]:
         """Node representation safe for Neo4j"""
         return (
             self.dict(exclude={"properties"})

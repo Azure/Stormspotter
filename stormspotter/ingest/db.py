@@ -128,7 +128,6 @@ class Neo4jDriver:
         """Adds Node or Relationship to Neo4j"""
 
         insert_statement = ""
-
         if isinstance(item, Node):
             primary_label, secondary_label = item._labels()
             set_statement = self.generate_set_statement(item, secondary_label)
