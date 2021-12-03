@@ -1,8 +1,10 @@
 import asyncio
+from enum import Enum
 import logging
 from asyncio import Queue
 
 from aiocypher.aioneo4j.driver import Driver
+import neo4j
 from neo4j.exceptions import AuthError
 from rich import inspect, print
 
@@ -53,7 +55,6 @@ class Neo4jDriver:
         return await_().__await__()
 
     async def close(self):
-        logging.info("Waiting for input queue to finish")
         await self.queue.join()
         await self.driver.close()
 
@@ -104,12 +105,20 @@ class Neo4jDriver:
     async def insert_relationship(self, relationship: Relationship) -> str:
         set_statement = self.generate_set_statement(relationship)
         log.debug(set_statement)
+
+        # Relation can be passed as either str or Enum so need to get the correct value
+        relation = (
+            relationship.relation.value
+            if isinstance(relationship.relation, Enum)
+            else relationship.relation
+        )
+
         insert_statement = BASE_REL_CYPHER.format(
             target_label=relationship.target_label,
             target=relationship.target,
             source_label=relationship.source_label,
             source=relationship.source,
-            relation=relationship.relation.value,
+            relation=relation,
             set_statement=set_statement,
         )
         log.debug(insert_statement + "\n")

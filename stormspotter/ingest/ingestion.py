@@ -11,9 +11,15 @@ import aiosqlite
 import msgpack
 from aiocypher.aioneo4j import Driver
 from rich import print
-
+from rich.status import Status
 from .db import Neo4jDriver
-from .models import AVAILABLE_MODELS
+from .models import (
+    AVAILABLE_MODELS,
+    AADObject,
+    ARMResource,
+    DynamicObject,
+    Relationship,
+)
 
 log = logging.getLogger("rich")
 log.debug(AVAILABLE_MODELS)
@@ -37,10 +43,32 @@ async def process_file(neo4j: Neo4jDriver, file: Path) -> None:
                 async for result in cursor:
                     obj_json = msgpack.loads(result[0])
                     try:
-                        await neo4j.insert(model(**obj_json))
+                        # If we're not processing RBAC we can just pass the object
+                        # But RBAC needs to have its fields match the Relationship base
+                        if not file.stem == "rbac":
+                            await neo4j.insert(model(**obj_json))
+                        else:
+                            obj = DynamicObject.from_dict(obj_json)
+                            await neo4j.insert(
+                                Relationship(
+                                    source=obj.principal_id,
+                                    source_label=AADObject._labels()[0],
+                                    target=obj.scope,
+                                    target_label=ARMResource._labels()[0],
+                                    relation=obj.roleName,
+                                    properties={
+                                        "name": obj.name,
+                                        "roleName": obj.roleName,
+                                        "roleType": obj.roleType,
+                                        "description": obj.roleDescription,
+                                    }
+                                    | obj.permissions[0].__dict__,
+                                )
+                            )
                     except Exception as e:
                         log.error(e, exc_info=True)
                         print(obj_json)
+
     # Process UUID file names (subscriptions)
     elif is_uuid(file.stem):
         async with aiosqlite.connect(file) as db:
@@ -64,4 +92,5 @@ async def start_parsing(files: List[Path], driver: Driver):
     for future in asyncio.as_completed(map(process_partial, files)):
         await future
 
-    await neo4j.close()
+    with Status(f"Waiting for input queue to finish.", spinner="aesthetic"):
+        await neo4j.close()

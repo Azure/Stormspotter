@@ -2,7 +2,7 @@ import json
 import logging
 from enum import Enum, auto
 from operator import attrgetter
-from typing import Any, ClassVar, Dict, List, Optional
+from typing import Any, ClassVar, Dict, List, Optional, Union
 
 from pydantic import BaseModel, Field, validator
 from pydantic.fields import PrivateAttr
@@ -16,6 +16,12 @@ log = logging.getLogger("rich")
 class DynamicObject:
     def __init__(self, d: dict) -> None:
         self.__dict__.update(d)
+
+    def __getattr__(self, item: str):
+        return self.__dict__[item]
+
+    def __dir__(self):
+        return [self.__dict__.keys()]
 
     def __repr__(self) -> str:
         return str(self.__dict__)
@@ -52,7 +58,7 @@ class Relationship(BaseModel):
     source_label: str
     target: str
     target_label: str
-    relation: RelationLabels
+    relation: Union[RelationLabels, str]
     properties: Optional[Dict[str, Any]]
 
     @validator("properties", pre=True, always=True)
@@ -66,6 +72,17 @@ class Relationship(BaseModel):
     def to_neo(self) -> Dict[str, Any]:
         """Node representation safe for Neo4j"""
         return self.dict(exclude={"properties"})
+
+    def getattr(self, attr: str) -> Any:
+        """Returns an object attribute if exists"""
+        try:
+            return attrgetter(attr)(self)
+        except:
+            return None
+
+
+class Rbac:
+    pass
 
 
 class Node(BaseModel):
@@ -307,6 +324,7 @@ class Subscription(ARMResource):
     __map_to_resourcegroup__: ClassVar[bool] = False
 
     tenant_id: str
+    name: str = Field(alias="display_name")
     subscription_id: str
     state: str
     managed_by_tenants: Optional[List[str]] = Field(default_factory=list)
@@ -380,13 +398,21 @@ def get_available_models() -> Dict[str, Node]:
     # AAD models need to use qualname or else you get ModelMetaclass back.
     aad_models = {qualname_base(c): c for c in AADObject.__subclasses__()}
     arm_models = {c.__arm_type__: c for c in ARMResource.__subclasses__()}
-    return aad_models | arm_models
+    return aad_models | arm_models | {"rbac": Rbac}
 
 
 def get_all_labels() -> List[str]:
     """Returns a list of all labels from all available models"""
     models = AVAILABLE_MODELS
-    return sorted(list(set([model._labels()[-1] for model in models.values()])))
+    return list(
+        set(
+            [
+                model._labels()[-1]
+                for model in models.values()
+                if hasattr(model, "_labels")
+            ]
+        )
+    )
 
 
 AVAILABLE_MODELS = get_available_models()
