@@ -38,7 +38,7 @@ async def process_file(neo4j: Neo4jDriver, file: Path) -> None:
     # Process everything but sqlite files for subscriptions here
     if model := AVAILABLE_MODELS.get(file.stem):
         async with aiosqlite.connect(file) as db:
-            log.info(f"Parsing {file.absolute()}")
+            log.info(f"Reading {file.absolute()}")
             async with db.execute("SELECT result from results") as cursor:
                 async for result in cursor:
                     obj_json = msgpack.loads(result[0])
@@ -72,7 +72,7 @@ async def process_file(neo4j: Neo4jDriver, file: Path) -> None:
     # Process UUID file names (subscriptions)
     elif is_uuid(file.stem):
         async with aiosqlite.connect(file) as db:
-            log.info(f"Parsing {file.absolute()}")
+            log.info(f"Reading {file.absolute()}")
             async with db.execute("SELECT result from results") as cursor:
                 async for result in cursor:
                     obj_json = msgpack.loads(result[0])
@@ -87,7 +87,7 @@ async def process_file(neo4j: Neo4jDriver, file: Path) -> None:
                             f"No model available for {obj_json['type'].lower()}"
                         )
                         print(obj_json)
-    log.info(f"Finished parsing {file.absolute()}")
+    log.info(f"Finished reading {file.absolute()}")
 
 
 async def start_parsing(files: List[Path], driver: Driver):

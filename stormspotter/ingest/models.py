@@ -76,7 +76,7 @@ class Relationship(BaseModel):
         """Convert id to lowercase"""
         return value.lower()
 
-    def to_neo(self) -> Dict[str, Any]:
+    def toNeo(self) -> Dict[str, Any]:
         """Node representation safe for Neo4j"""
         return self.dict(exclude={"properties"})
 
@@ -120,7 +120,7 @@ class Node(BaseModel):
     def label(self) -> str:
         return qualname_base(self).upper()
 
-    def to_neo(self) -> Dict[str, Any]:
+    def toNeo(self) -> Dict[str, Any]:
         """Node representation safe for Neo4j"""
         return self.dict(exclude={"properties"})
 
@@ -161,7 +161,7 @@ class AADObject(Node):
         if additional_rels := self.__relationships__():
             self._relationships.extend(additional_rels)
 
-    def to_neo(self) -> Dict[str, Any]:
+    def toNeo(self) -> Dict[str, Any]:
         """Node representation safe for Neo4j"""
         return self.dict(exclude={"owners", "members"}) | {
             "_relationships": self._relationships
@@ -295,7 +295,7 @@ class ARMResource(Node):
 
         return DynamicObject.from_dict(dict_value)
 
-    def to_neo(self) -> Dict[str, Any]:
+    def toNeo(self) -> Dict[str, Any]:
         """Node representation safe for Neo4j"""
         return (
             self.dict(exclude={"properties"})

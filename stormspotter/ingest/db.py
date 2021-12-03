@@ -97,7 +97,7 @@ class Neo4jDriver:
         if isinstance(item, Node):
             set_statements_parts = [
                 f"obj.{key} = {check_type(value)}"
-                for key, value in item.to_neo().items()
+                for key, value in item.toNeo().items()
                 if key not in ["_relationships", "id"]
             ]
             set_statements_parts.extend([f"obj:{secondary_label}"])
