@@ -4,7 +4,6 @@ import time
 import xml
 
 import aiohttp
-import orjson
 from azure.mgmt.authorization.aio import AuthorizationManagementClient
 from azure.mgmt.resource.resources.aio import ResourceManagementClient
 from azure.mgmt.resource.subscriptions.aio import SubscriptionClient
@@ -13,7 +12,7 @@ from rich import print, print_json
 
 from stormspotter.collect.enums import EnumMode
 
-from .aad import rbac_backfill
+from .aad import query_aad
 from .context import CollectorContext
 from .utils import sqlite_writer
 
@@ -145,6 +144,48 @@ async def _query_subscription(ctx: CollectorContext, sub: Subscription):
     )
 
 
+async def _start_query(ctx: CollectorContext, subscription: Subscription):
+    """Starts all queries on a subscription"""
+    if ctx.include_subs:
+        if not subscription.subscription_id in ctx.include_subs:
+            return
+
+    if ctx.exclude_subs:
+        if subscription.subscription_id in ctx.exclude_subs:
+            return
+
+    await sqlite_writer(
+        ctx.output_dir / "subscription.sqlite",
+        subscription.as_dict(),
+    )
+
+    # Check for management certs
+    if certs := await _query_management_certs(ctx, subscription):
+        certs_output = ctx.output_dir / f"management_certs.sqlite"
+        await sqlite_writer(certs_output, certs)
+
+    # Enumerate RBAC
+    rbac_output = ctx.output_dir / "rbac.sqlite"
+    object_ids = set()
+    if roles := await _query_rbac(ctx, subscription):
+        for role in roles:
+            await sqlite_writer(rbac_output, role)
+            if ctx.backfill:
+                object_ids.add(role["principal_id"])
+
+    # We only need to backfill if only ARM and backfill are passed
+    if ctx.mode == EnumMode.ARM and ctx.backfill and object_ids:
+        log.info(f"Performing ARM RBAC backfill enumeration for {subscription.id}")
+        start_time = time.time()
+        await query_aad(ctx, list(object_ids))
+        log.info(
+            f"Completed ARM RBAC backfill enumeration ({time.time() - start_time} sec)"
+        )
+
+    # Enumerate subscription
+    await _query_subscription(ctx, subscription)
+
+
 async def query_arm(ctx: CollectorContext) -> None:
     """Starts enumeration for Azure Resource Manager"""
 
@@ -164,55 +205,7 @@ async def query_arm(ctx: CollectorContext) -> None:
         # If exclude_subs is also passed, do not add if in passed list
         # Finally, if sub in not wanted tenants, then move on
         sub_list = []
-        async for subscription in sub_client.subscriptions.list():
-            if ctx.include_subs:
-                if not subscription.subscription_id in ctx.include_subs:
-                    continue
 
-            if ctx.exclude_subs:
-                if subscription.subscription_id in ctx.exclude_subs:
-                    continue
-
-            sub_list.append(subscription)
-            await sqlite_writer(
-                ctx.output_dir / "subscription.sqlite",
-                subscription.as_dict(),
-            )
-
-        if not sub_list:
-            log.error(f"No subscriptions found")
-            return
-
-        # Check for management certs
-        certsTasks = [
-            asyncio.create_task(_query_management_certs(ctx, sub)) for sub in sub_list
-        ]
-        certs_output = ctx.output_dir / f"management_certs.sqlite"
-
-        for cert in asyncio.as_completed(*[certsTasks]):
-            if await cert:
-                await sqlite_writer(certs_output, cert)
-
-        # Enumerate RBAC
-        rbac_output = ctx.output_dir / "rbac.sqlite"
-
-        # List of object IDs to hold for AAD enumeration
-        aad_backfills = set()
-        rbacTasks = [asyncio.create_task(_query_rbac(ctx, sub)) for sub in sub_list]
-        for task in asyncio.as_completed(*[rbacTasks]):
-            if roles := await task:
-                for role in roles:
-                    await sqlite_writer(rbac_output, role)
-                    if ctx.backfill:
-                        aad_backfills.add(role["principal_id"])
-
-        # We only need to backfill if only ARM and backfill are passed
-        if ctx.mode == EnumMode.ARM and ctx.backfill:
-            await rbac_backfill(ctx, list(aad_backfills))
-
-        # Enumerate subscriptions
-        subTasks = [
-            asyncio.create_task(_query_subscription(ctx, sub)) for sub in sub_list
-        ]
-
-        await asyncio.gather(*subTasks)
+        await asyncio.gather(
+            *[_start_query(ctx, sub) async for sub in sub_client.subscriptions.list()]
+        )

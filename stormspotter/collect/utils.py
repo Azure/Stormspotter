@@ -1,7 +1,8 @@
 from itertools import islice
 from pathlib import Path
+from sqlite3.dbapi2 import OperationalError
 from typing import Counter, Dict, List, Union
-
+from contextlib import suppress
 import aiosqlite
 import msgpack
 from rich import box
@@ -31,10 +32,14 @@ async def sqlite_writer(output: Path, res):
             await db.commit()
 
     async with aiosqlite.connect(output) as db:
-        await db.execute_insert(
-            "INSERT INTO results (result) VALUES (?)", (msgpack.dumps(res),)
-        )
-        await db.commit()
+        while True:
+            # We suppress OperationalError here in case of race condition between insert and file existing
+            with suppress(OperationalError):
+                await db.execute_insert(
+                    "INSERT INTO results (result) VALUES (?)", (msgpack.dumps(res),)
+                )
+                await db.commit()
+                break
 
 
 def chunk(data: Union[List, Dict], size: int):
