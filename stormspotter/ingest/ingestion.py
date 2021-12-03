@@ -35,7 +35,7 @@ def is_uuid(value: str) -> bool:
 async def process_file(neo4j: Neo4jDriver, file: Path) -> None:
 
     # Process everything but sqlite files for subscriptions here
-    if model := AVAILABLE_MODELS.get(file.stem):
+    if model := AVAILABLE_MODELS.get(file.stem) or file.stem == "rbac":
         async with aiosqlite.connect(file) as db:
             log.info(f"Reading {file.absolute()}")
             async with db.execute("SELECT result from results") as cursor:
