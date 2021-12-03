@@ -69,25 +69,20 @@ class Relationship(BaseModel):
         elif isinstance(props, DynamicObject):
             return props.__dict__
 
+    @validator("source", "target")
+    def lower_id(cls, value: str):
+        """Convert id to lowercase"""
+        return value.lower()
+
     def to_neo(self) -> Dict[str, Any]:
         """Node representation safe for Neo4j"""
         return self.dict(exclude={"properties"})
-
-    def getattr(self, attr: str) -> Any:
-        """Returns an object attribute if exists"""
-        try:
-            return attrgetter(attr)(self)
-        except:
-            return None
-
-
-class Rbac:
-    pass
 
 
 class Node(BaseModel):
     """Base model for all nodes"""
 
+    id: str
     _relationships: List[Relationship] = PrivateAttr(default_factory=list)
 
     # A. Ignore all extra fields
@@ -95,6 +90,11 @@ class Node(BaseModel):
     class Config:
         extra = "ignore"
         json_encoders = {DynamicObject: lambda v: v.__dict__}
+
+    @validator("id")
+    def lower_id(cls, value: str):
+        """Convert id to lowercase"""
+        return value.lower()
 
     def __relationships__(self) -> List[Relationship]:
         """Override this method to define relationships for resource object."""
@@ -120,19 +120,11 @@ class Node(BaseModel):
         """Node representation safe for Neo4j"""
         return self.dict(exclude={"properties"})
 
-    def getattr(self, attr: str) -> Any:
-        """Returns an object attribute if exists"""
-        try:
-            return attrgetter(attr)(self)
-        except:
-            return None
-
 
 ####--- AAD RELATED MODELS ---###
 class AADObject(Node):
     """Base Neo4JModel for AAD objects"""
 
-    id: str
     displayName: str
 
     def __init__(self, **data: Any) -> None:
@@ -236,10 +228,10 @@ class ARMResource(Node):
     __map_to_resourcegroup__: ClassVar[bool] = True
     __xdict__: Dict[str, Any] = PrivateAttr(default_factory=dict)
 
-    id: str
     location: Optional[str]
     name: Optional[str]
     properties: Optional[DynamicObject]
+    kind: Optional[str]
     tags: Optional[List[str]]
 
     class Config:
@@ -249,12 +241,18 @@ class ARMResource(Node):
         super().__init__(**data)
 
         # Grab the field from the properties and set it as it's own property
+        print(self.__xfields__)
         if self.properties and self.__xfields__:
+            print(self.__arm_type__)
             for field in self.__xfields__:
                 try:
+                    print(field)
                     value = attrgetter(field)(self.properties)
                 except:
                     value = None
+
+                if "virtualmachines" in self.__arm_type__:
+                    print(field, value)
 
                 field_name = field.split(".")[-1]
                 self.__xdict__[field_name] = value
@@ -277,7 +275,7 @@ class ARMResource(Node):
     @property
     def subscription(self) -> str:
         """Get the subscription from the id"""
-        return self.id.split("/resourceGroups")[0]
+        return self.id.split("/resourcegroups")[0]
 
     @property
     def resourcegroup(self) -> str:
@@ -361,6 +359,45 @@ class ResourceGroup(ARMResource):
         return relations
 
 
+class DatabaseAccount(ARMResource):
+    __arm_type__ = "microsoft.documentdb/databaseaccounts"
+    __xfields__ = [
+        "documentEndpoint",
+        "publicNetworkAccess",
+        "EnabledApiTypes",
+        "disableKeyBasedMetadataWriteAccess",
+    ]
+
+
+class Disk(ARMResource):
+    __arm_type__ = "microsoft.compute/disks"
+    __xfields__ = [
+        "osType",
+        "hyperVGeneration",
+        "diskSizeGB",
+        "networkAccessPolicy",
+        "publicNetworkAccess",
+        "diskState",
+        "timeCreated",
+    ]
+
+
+class SqlServer(ARMResource):
+    __arm_type__ = "microsoft.sql/servers"
+    __xfields__ = [
+        "administratorLogin",
+        "state",
+        "fullyQualifiedDomainName",
+        "publicNetworkAccess",
+        "restrictOutboundNetworkAccess",
+    ]
+
+
+class SqlServerDatabase(ARMResource):
+    __arm_type__ = "microsoft.sql/servers/databases"
+    __xfields__ = ["status", "creationDate", "earliestRestoreDate"]
+
+
 class KeyVault(ARMResource):
     __arm_type__ = "microsoft.keyvault/vaults"
     __xfields__ = [
@@ -387,9 +424,39 @@ class KeyVault(ARMResource):
         return relations
 
 
+class Solution(ARMResource):
+    __arm_type__ = "microsoft.operationsmanagement/solutions"
+    __xfields__ = ["creationTime", "lastModifiedTime", "containedResources"]
+
+
 class StorageAccount(ARMResource):
     __arm_type__ = "microsoft.storage/storageaccounts"
     __xfields__ = ["accessTier", "creationTime", "supportsHttpsTrafficOnly"]
+
+
+class VirtualMachine(ARMResource):
+    __arm_type__ = "microsoft.compute/virtualmachine"
+    __xfields__ = [
+        "osProfile.computerName",
+        "osProfile.adminUsername",
+        "osProfile.allowExtensionOperations",
+        "hardwareProfile.vmSize",
+        "storageProfile.imageReference.publisher",
+        "storageProfile.imageReference.offer",
+        "storageProfile.imageReference.sku",
+        "storageProfile.imageReference.exactVersion",
+    ]
+
+
+class Workspace(ARMResource):
+    __arm_type__ = "microsoft.operationalinsights/workspaces"
+    __xfields__ = [
+        "source",
+        "customerId",
+        "retentionInDays",
+        "createdDate",
+        "modifiedDate",
+    ]
 
 
 def get_available_models() -> Dict[str, Node]:
@@ -398,7 +465,7 @@ def get_available_models() -> Dict[str, Node]:
     # AAD models need to use qualname or else you get ModelMetaclass back.
     aad_models = {qualname_base(c): c for c in AADObject.__subclasses__()}
     arm_models = {c.__arm_type__: c for c in ARMResource.__subclasses__()}
-    return aad_models | arm_models | {"rbac": Rbac}
+    return aad_models | arm_models
 
 
 def get_all_labels() -> List[str]:

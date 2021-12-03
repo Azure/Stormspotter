@@ -16,7 +16,7 @@ log = logging.getLogger("rich")
 
 
 CREATE_CONSTRAINTS_CYPHER_LIST = [
-    f"CREATE CONSTRAINT IF NOT EXISTS ON (n:{label}) ASSERT (n.id) IS UNIQUE"
+    f"CREATE CONSTRAINT IF NOT EXISTS ON (n:{label}) ASSERT n.id IS UNIQUE"
     for label in AVAILABLE_MODEL_LABELS
 ]
 

@@ -67,7 +67,7 @@ async def process_file(neo4j: Neo4jDriver, file: Path) -> None:
                             )
                     except Exception as e:
                         log.error(e, exc_info=True)
-                        print(obj_json)
+                        log.error(obj_json)
 
     # Process UUID file names (subscriptions)
     elif is_uuid(file.stem):
@@ -81,7 +81,12 @@ async def process_file(neo4j: Neo4jDriver, file: Path) -> None:
                             await neo4j.insert(model(**obj_json))
                         except Exception as e:
                             log.error(e, exc_info=True)
-                            print(obj_json)
+                            log.error(obj_json)
+                    else:
+                        log.warning(
+                            f"No model available for {obj_json['type'].lower()}"
+                        )
+                        print(obj_json)
     log.info(f"Finished parsing {file.absolute()}")
 
 
