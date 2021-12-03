@@ -36,12 +36,14 @@ class RelationLabels(Enum):
         """Sets value of auto() to name of property"""
         return name
 
+    AssociatedTo = auto()
     AttachedTo = auto()
     Authenticates = auto()
     ConnectedTo = auto()
     Contains = auto()
     Exposes = auto()
     HasAccessPolicies = auto()
+    HasConfig = auto()
     HasRbac = auto()
     HasRole = auto()
     Manages = auto()
@@ -87,9 +89,11 @@ class Node(BaseModel):
 
     # A. Ignore all extra fields
     # B. Encode DynamicObject by getting the __dict__
+    # C. Allow for arbitrary types, like DynamicObject
     class Config:
         extra = "ignore"
         json_encoders = {DynamicObject: lambda v: v.__dict__}
+        arbitrary_types_allowed = True
 
     @validator("id")
     def lower_id(cls, value: str):
@@ -234,9 +238,6 @@ class ARMResource(Node):
     kind: Optional[str]
     tags: Optional[List[str]]
 
-    class Config:
-        arbitrary_types_allowed = True
-
     def __init__(self, **data: Any) -> None:
         super().__init__(**data)
 
@@ -287,8 +288,11 @@ class ARMResource(Node):
         return None
 
     @validator("properties", pre=True, always=True)
-    def props_to_obj(cls, dict_value: str):
+    def props_to_obj(cls, dict_value: dict):
         """Convert properties dictionary to dynamic object"""
+        if isinstance(dict_value, DynamicObject):
+            return dict_value
+
         return DynamicObject.from_dict(dict_value)
 
     def to_neo(self) -> Dict[str, Any]:
@@ -376,21 +380,56 @@ class Disk(ARMResource):
         "timeCreated",
     ]
 
+    managed_by: Optional[str] = ...
 
-class SqlServer(ARMResource):
-    __arm_type__ = "microsoft.sql/servers"
+    def __relationships__(self) -> List[Relationship]:
+        relations = []
+        if self.managed_by:
+            relations.append(
+                Relationship(
+                    source=self.id,
+                    source_label=Disk._labels()[0],
+                    target=self.managed_by,
+                    target_label=ARMResource._labels()[0],
+                    relation=RelationLabels.AttachedTo,
+                )
+            )
+        return relations
+
+
+class IpConfiguration(ARMResource):
+    __arm_type__ = "microsoft.network/networkinterfaces/ipconfigurations"
     __xfields__ = [
-        "administratorLogin",
-        "state",
-        "fullyQualifiedDomainName",
-        "publicNetworkAccess",
-        "restrictOutboundNetworkAccess",
+        "privateIPAddress",
+        "privateIPAllocationMethod",
+        "primary",
+        "privateIPAddressVersion",
     ]
 
+    def __relationships__(self) -> List[Relationship]:
+        relations = []
+        if publicip_id := self.properties.publicIpAddress.id:
+            relations.append(
+                Relationship(
+                    source=self.id,
+                    source_label=self._labels()[1],
+                    target=publicip_id,
+                    target_label=PublicIPAddress._labels()[0],
+                    relation=RelationLabels.Exposes,
+                )
+            )
 
-class SqlServerDatabase(ARMResource):
-    __arm_type__ = "microsoft.sql/servers/databases"
-    __xfields__ = ["status", "creationDate", "earliestRestoreDate"]
+        if subnet_id := self.properties.subnet.id:
+            relations.append(
+                Relationship(
+                    source=subnet_id,
+                    source_label=Subnet._labels()[1],
+                    target=self.id,
+                    target_label=self._labels()[0],
+                    relation=RelationLabels.HasConfig,
+                )
+            )
+        return relations
 
 
 class KeyVault(ARMResource):
@@ -419,6 +458,108 @@ class KeyVault(ARMResource):
         return relations
 
 
+class NetworkInterface(ARMResource):
+    __arm_type__ = "microsoft.network/networkinterfaces"
+    __xfields__ = [
+        "macAddress",
+        "enableIPForwarding",
+        "primary",
+        "dnsSettings.dnsServers",
+        "dnsSettings.appliedDnsServers" "dnsSettings.internalDomainNameSuffix",
+        "nicType",
+    ]
+
+    def __relationships__(self) -> List[Relationship]:
+        relations = []
+        if vm_id := self.properties.virtualMachine.id:
+            relations.append(
+                Relationship(
+                    source=self.id,
+                    source_label=self._labels()[0],
+                    target=vm_id,
+                    target_label=VirtualMachine._labels()[0],
+                    relation=RelationLabels.AttachedTo,
+                )
+            )
+
+        if nsg_id := self.properties.networkSecurityGroup.id:
+            relations.append(
+                Relationship(
+                    source=self.id,
+                    source_label=self._labels()[0],
+                    target=nsg_id,
+                    target_label=NetworkSecurityGroup._labels()[0],
+                    relation=RelationLabels.AssociatedTo,
+                )
+            )
+        return relations
+
+
+class NetworkSecurityGroup(ARMResource):
+    __arm_type__ = "microsoft.network/networksecuritygroups"
+
+    def __relationships__(self) -> List[Relationship]:
+        relations = []
+        for interface in self.properties.networkInterfaces:
+            relations.append(
+                Relationship(
+                    source=interface.id,
+                    source_label=NetworkInterface._labels()[0],
+                    target=self.id,
+                    target_label=self._labels()[0],
+                    relation=RelationLabels.AssociatedTo,
+                )
+            )
+        return relations
+
+
+class NetworkWatcher(ARMResource):
+    __arm_type__ = "microsoft.network/networkwatchers"
+    __xfields__ = ["runningOperationIds"]
+
+
+class PublicIPAddress(ARMResource):
+    __arm_type__ = "microsoft.network/publicipaddresses"
+    __xfields__ = [
+        "ipAddress",
+        "dnsSettings.fqdn",
+        "publicIPAddressVersion",
+        "publicIPAllocationMethod",
+        "idleTimeoutInMinutes",
+        "ipTags",
+    ]
+
+    def __relationships__(self) -> List[Relationship]:
+        relations = []
+        if ipconfig_id := self.properties.ipConfiguration.id:
+            relations.append(
+                Relationship(
+                    source=ipconfig_id,
+                    source_label=IpConfiguration._labels()[1],
+                    target=self.id,
+                    target_label=self._labels()[0],
+                    relation=RelationLabels.Exposes,
+                )
+            )
+        return relations
+
+
+class SqlServer(ARMResource):
+    __arm_type__ = "microsoft.sql/servers"
+    __xfields__ = [
+        "administratorLogin",
+        "state",
+        "fullyQualifiedDomainName",
+        "publicNetworkAccess",
+        "restrictOutboundNetworkAccess",
+    ]
+
+
+class SqlServerDatabase(ARMResource):
+    __arm_type__ = "microsoft.sql/servers/databases"
+    __xfields__ = ["status", "creationDate", "earliestRestoreDate"]
+
+
 class Solution(ARMResource):
     __arm_type__ = "microsoft.operationsmanagement/solutions"
     __xfields__ = ["creationTime", "lastModifiedTime", "containedResources"]
@@ -426,7 +567,35 @@ class Solution(ARMResource):
 
 class StorageAccount(ARMResource):
     __arm_type__ = "microsoft.storage/storageaccounts"
-    __xfields__ = ["accessTier", "creationTime", "supportsHttpsTrafficOnly"]
+    __xfields__ = [
+        "accessTier",
+        "creationTime",
+        "supportsHttpsTrafficOnly",
+        "networkAcls.bypass",
+        "networkAcls.defaultAction",
+    ]
+
+
+class Subnet(ARMResource):
+    __arm_type__ = "microsoft.network/virtualnetworks/subnets"
+    __xfields__ = [
+        "addressPrefix",
+        "privateEndpointNetworkPolicies",
+        "privateLinkServiceNetworkPolicies",
+    ]
+
+    def __relationships__(self) -> List[Relationship]:
+        relations = []
+        for ipconfig in self.properties.ipConfigurations:
+            relations.append(
+                Relationship(
+                    source=self.id,
+                    source_label=self._labels()[0],
+                    target=ipconfig.id,
+                    target_label=IpConfiguration._labels()[0],
+                    relation=RelationLabels.HasConfig,
+                )
+            )
 
 
 class VirtualMachine(ARMResource):
@@ -441,6 +610,54 @@ class VirtualMachine(ARMResource):
         "storageProfile.imageReference.sku",
         "storageProfile.imageReference.exactVersion",
     ]
+
+    def __relationships__(self) -> List[Relationship]:
+        relations = []
+
+        for interface in self.properties.networkProfile.networkInterfaces:
+            relations.append(
+                Relationship(
+                    source=interface.id,
+                    source_label=NetworkInterface._labels()[0],
+                    target=self.id,
+                    target_label=VirtualMachine._labels()[0],
+                    relation=RelationLabels.AttachedTo,
+                )
+            )
+
+        osdisk_id = self.properties.storageProfile.osDisk.managedDisk.id
+        relations.append(
+            Relationship(
+                source=osdisk_id,
+                source_label=Disk._labels()[0],
+                target=self.id,
+                target_label=self._labels()[0],
+                relation=RelationLabels.AttachedTo,
+            )
+        )
+        return relations
+
+
+class VirtualNetwork(ARMResource):
+    __arm_type__ = "microsoft.network/virtualnetworks"
+    __xfields__ = ["addressSpace.addressPrefixes", "enableDdosProtection"]
+
+    def __relationships__(self) -> List[Relationship]:
+        relations = []
+
+        for subnet in self.properties.subnets:
+            subnet_node = Subnet.parse_obj(subnet.__dict__)
+            relations.append(subnet_node)
+            relations.append(
+                Relationship(
+                    source=self.id,
+                    source_label=self._labels()[0],
+                    target=subnet_node.id,
+                    target_label=subnet_node._labels()[0],
+                    relation=RelationLabels.Contains,
+                )
+            )
+        return relations
 
 
 class VMExtension(ARMResource):

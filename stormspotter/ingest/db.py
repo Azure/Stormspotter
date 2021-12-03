@@ -145,10 +145,9 @@ class Neo4jDriver:
             log.debug(insert_statement + "\n")
             await self.queue.put(insert_statement)
 
-            # Add relationships
-
+            # Add relationships and Nodes associated in relationships
             for relationship in item._relationships:
-                await self.insert_relationship(relationship)
+                await self.insert(relationship)
         elif isinstance(item, Relationship):
             await self.insert_relationship(item)
 
