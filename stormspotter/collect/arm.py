@@ -174,7 +174,7 @@ async def _start_query(ctx: CollectorContext, subscription: Subscription):
                 object_ids.add(role["principal_id"])
 
     # We only need to backfill if only ARM and backfill are passed
-    if ctx.mode == EnumMode.ARM and ctx.backfill and object_ids:
+    if ctx.mode == EnumMode.BACKFILL and object_ids:
         log.info(f"Performing ARM RBAC backfill enumeration for {subscription.id}")
         start_time = time.time()
         await query_aad(ctx, list(object_ids))

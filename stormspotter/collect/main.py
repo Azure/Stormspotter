@@ -89,12 +89,6 @@ def azcli(
         metavar="",
         case_sensitive=False,
     ),
-    backfill: bool = typer.Option(
-        False,
-        "--backfill",
-        help="Perform AAD enumeration only for ARM RBAC object IDs",
-        metavar="",
-    ),
     include_sub: List[str] = typer.Option(
         [], "--include-subs", "-is", help="Only scan specific subscriptions", metavar=""
     ),
@@ -110,7 +104,6 @@ def azcli(
         cred,
         cloud._cloud,
         mode,
-        backfill,
         include_sub,
         exclude_sub,
     )
@@ -126,15 +119,9 @@ def vscode(
     mode: EnumMode = typer.Option(
         EnumMode.BOTH,
         "--mode",
-        help="AAD, ARM, or both",
+        help="AAD, ARM, BACKFILL, or both",
         metavar="",
         case_sensitive=False,
-    ),
-    backfill: bool = typer.Option(
-        False,
-        "--backfill",
-        help="Perform AAD enumeration only for ARM RBAC object IDs",
-        metavar="",
     ),
     include_sub: List[str] = typer.Option(
         [], "--include-subs", "-is", help="Only scan specific subscriptions", metavar=""
@@ -151,7 +138,6 @@ def vscode(
         cred,
         cloud._cloud,
         mode,
-        backfill,
         include_sub,
         exclude_sub,
         tenant_id=tenant_id,

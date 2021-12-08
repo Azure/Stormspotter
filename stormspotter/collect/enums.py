@@ -33,4 +33,5 @@ class Cloud(str, Enum):
 class EnumMode(str, Enum):
     AAD = "aad"
     ARM = "arm"
+    BACKFILL = "backfill"
     BOTH = "both"
