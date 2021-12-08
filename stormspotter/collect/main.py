@@ -7,7 +7,7 @@ from typing import Any, List
 
 import click
 import typer
-from azure.identity.aio import AzureCliCredential, VisualStudioCodeCredential
+from azure.identity.aio import VisualStudioCodeCredential
 from rich import print
 from rich.logging import RichHandler
 
@@ -16,6 +16,7 @@ from .arm import query_arm
 from .context import CollectorContext
 from .enums import Cloud, EnumMode
 from .utils import gen_results_tables
+from .credentials import CachedAzureCliCredential
 
 app = typer.Typer(
     context_settings={"help_option_names": ["-h", "--help"]},
@@ -37,7 +38,7 @@ async def start_collect(ctx: CollectorContext):
     if ctx.mode in [EnumMode.AAD, EnumMode.BOTH]:
         tasks.append(asyncio.create_task(query_aad(ctx)))
 
-    if ctx.mode in [EnumMode.ARM, EnumMode.BOTH]:
+    if ctx.mode in [EnumMode.ARM, EnumMode.BACKFILL, EnumMode.BOTH]:
         tasks.append(asyncio.create_task(query_arm(ctx)))
 
     await asyncio.wait(tasks)
@@ -98,7 +99,7 @@ def azcli(
 ):
     """Authenticate and run with Azure CLI credentials"""
     log.info("Attempting to login with Azure CLI credentials...")
-    cred = AzureCliCredential()
+    cred = CachedAzureCliCredential()
 
     ctx.obj["ctx"] = CollectorContext(
         cred,

@@ -16,7 +16,6 @@ class CollectorContext:
     cred: Union[AzureCliCredential, ClientSecretCredential]
     cloud: Cloud
     mode: EnumMode
-    backfill: bool
     include_subs: List[str]
     exclude_subs: List[str]
     tenant_id: Optional[str] = None

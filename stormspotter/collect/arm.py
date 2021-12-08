@@ -170,7 +170,7 @@ async def _start_query(ctx: CollectorContext, subscription: Subscription):
     if roles := await _query_rbac(ctx, subscription):
         for role in roles:
             await sqlite_writer(rbac_output, role)
-            if ctx.backfill:
+            if ctx.mode == EnumMode.BACKFILL:
                 object_ids.add(role["principal_id"])
 
     # We only need to backfill if only ARM and backfill are passed

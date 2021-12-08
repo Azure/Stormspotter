@@ -23,13 +23,15 @@ async def sqlite_writer(output: Path, res):
     """Writes results to sqlite file"""
 
     if not Path(output).exists():
-        async with aiosqlite.connect(output) as db:
-            await db.execute(
-                """CREATE TABLE IF NOT EXISTS results 
-                (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                result blob)"""
-            )
-            await db.commit()
+        # We suppress OperationalError here in case of race condition between table create and file existing
+        with suppress(OperationalError):
+            async with aiosqlite.connect(output) as db:
+                await db.execute(
+                    """CREATE TABLE IF NOT EXISTS results 
+                    (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    result blob)"""
+                )
+                await db.commit()
 
     async with aiosqlite.connect(output) as db:
         while True:
@@ -57,6 +59,9 @@ def gen_results_tables(aad_results: Counter, arm_results: Counter) -> RenderGrou
     tables = []
 
     if aad_results:
+
+        # Remove any instance of None in case of enumeration error
+        aad_results.pop(None, None)
         aad_table = Table(
             style="bold blue",
             title_style="bold cyan",
@@ -78,6 +83,8 @@ def gen_results_tables(aad_results: Counter, arm_results: Counter) -> RenderGrou
 
     arm_results_group = []
     if arm_results:
+        # Remove any instance of None in case of enumeration error
+        arm_results.pop(None, None)
         for chunked_list in chunk(
             sorted(arm_results.items()), len(arm_results) // 3 + 1
         ):
