@@ -46,6 +46,7 @@ class RelationLabels(Enum):
     HasConfig = auto()
     HasRbac = auto()
     HasRole = auto()
+    Is = auto()
     Manages = auto()
     MemberOf = auto()
     Owns = auto()
@@ -176,13 +177,13 @@ class AADApplication(AADObject):
 
 
 class AADServicePrincipal(AADObject):
-    accountEnabled: bool
+    accountEnabled: Optional[bool]
     appDisplayName: Optional[str] = ...
     appId: str
     appOwnerOrganizationId: Optional[str] = ...
-    owners: List[str]
+    owners: Optional[List[str]]
     publisherName: Optional[str] = ...
-    servicePrincipalType: str
+    servicePrincipalType: Optional[str]
 
 
 class AADGroup(AADObject):
@@ -237,6 +238,7 @@ class ARMResource(Node):
     properties: Optional[DynamicObject]
     kind: Optional[str]
     tags: Optional[List[str]]
+    identity: Optional[Dict[str, Any]]
 
     def __init__(self, **data: Any) -> None:
         super().__init__(**data)
@@ -265,6 +267,26 @@ class ARMResource(Node):
                 )
             )
 
+        # If there's a managed identity, add it to relations
+        # "None" here is a string, not a None object
+        if self.identity and self.identity.get("type") != "None":
+            msi = AADServicePrincipal(
+                id=self.identity["principal_id"],
+                displayName=self.name,
+                appOwnerOrganizationId=self.identity["tenant_id"],
+            )
+            self._relationships.append(msi)
+            self._relationships.append(
+                Relationship(
+                    source=self.id,
+                    source_label=self._labels()[0],
+                    target=msi.id,
+                    target_label=msi._labels()[0],
+                    relation=RelationLabels.Is,
+                )
+            )
+
+        # Check additional relationships for subclasses
         if additional_rels := self.__relationships__():
             self._relationships.extend(additional_rels)
 
@@ -324,7 +346,7 @@ class Subscription(ARMResource):
     name: str = Field(alias="display_name")
     subscription_id: str
     state: str
-    managed_by_tenants: Optional[List[str]] = Field(default_factory=list)
+    managed_by_tenants: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
 
     def __relationships__(self) -> List[Relationship]:
         relations = []
@@ -337,6 +359,19 @@ class Subscription(ARMResource):
                 relation=RelationLabels.Contains,
             )
         )
+
+        for managed in self.managed_by_tenants:
+            tenant = Tenant(**managed)
+            relations.append(tenant)
+            relations.append(
+                Relationship(
+                    source="/tenants/" + tenant.tenant_id,
+                    source_label=Tenant._labels()[0],
+                    target=self.id,
+                    target_label=self._labels()[0],
+                    relation=RelationLabels.Manages,
+                )
+            )
         return relations
 
 
@@ -358,6 +393,47 @@ class ResourceGroup(ARMResource):
         return relations
 
 
+class BotService(ARMResource):
+    __arm_type__ = "microsoft.botservice/botServices"
+    __xfields__ = [
+        "displayName",
+        "description",
+        "endpoint",
+        "msaAppId",
+        "developerAppInsightKey",
+        "enabledChannels",
+    ]
+
+
+class ClassicStorageAccount(ARMResource):
+    __arm_type__ = "microsoft.classicstorage/storageaccounts"
+    __xfields__ = ["creationTime", "endpoints"]
+
+
+class ContainerGroup(ARMResource):
+    __arm_type__ = "microsoft.containerinstance/containergroups"
+    __xfields__ = ["osType"]
+
+
+class ContainerRegistry(ARMResource):
+    __arm_type__ = "microsoft.containerregistry/registries"
+    __xfields__ = [
+        "loginServer",
+        "adminUserEnabled",
+        "publicNetworkAccess",
+        "anonymousPullEnabled",
+    ]
+
+
+class ContainerRegistryWebhook(ARMResource):
+    __arm_type__ = "microsoft.containerregistry/registries/webhook"
+    __xfields__ = ["scope", "actions"]
+
+
+class Dashboard(ARMResource):
+    __arm_type__ = "microsoft.portal/dashboards"
+
+
 class DatabaseAccount(ARMResource):
     __arm_type__ = "microsoft.documentdb/databaseaccounts"
     __xfields__ = [
@@ -365,6 +441,18 @@ class DatabaseAccount(ARMResource):
         "publicNetworkAccess",
         "EnabledApiTypes",
         "disableKeyBasedMetadataWriteAccess",
+    ]
+
+
+class DataLakeStoreAccount(ARMResource):
+    __arm_type__ = "microsoft.datalakestore/accounts"
+    __xfields__ = [
+        "firewallState",
+        "firewallAllowAzureIps",
+        "firewallAllowDataLakeAnalytics",
+        "endpoint",
+        "creationTime",
+        "lastModifiedTime",
     ]
 
 
@@ -395,6 +483,31 @@ class Disk(ARMResource):
                 )
             )
         return relations
+
+
+class InsightsActionGroup(ARMResource):
+    __arm_type__ = "microsoft.insights/actiongroups"
+    __xfields__ = "groupShortName"
+
+
+class InsightsComponent(ARMResource):
+    __arm_type__ = "microsoft.insights/components"
+    __xfields__ = [
+        "ApplicationId",
+        "AppId",
+        "Request_Source",
+        "Instrumentationkey",
+        "ConnectionString",
+        "RetentionInDays",
+        "publicNetworkAccessForIngestion",
+        "publicNetworkAccessForQuery",
+        "tenantId",
+    ]
+
+
+class InsightsWorkbook(ARMResource):
+    __arm_type__ = "microsoft.insights/workbooks"
+    __xfields__ = ["displayName", "version", "userId", "sourceId"]
 
 
 class IpConfiguration(ARMResource):
@@ -430,6 +543,11 @@ class IpConfiguration(ARMResource):
                 )
             )
         return relations
+
+
+class LogicWorkflow(ARMResource):
+    __arm_type__ = "microsoft.logic/workflows"
+    __xfields__ = ["state, createdTime", "changedTime", "accessEndpoint", "version"]
 
 
 class KeyVault(ARMResource):
@@ -544,6 +662,57 @@ class PublicIPAddress(ARMResource):
         return relations
 
 
+class PurviewAccount(ARMResource):
+    __arm_type__ = "microsoft.purview/accounts"
+    __xfields__ = [
+        "friendlyName",
+        "createdBy",
+        "createdAt",
+        "managedResourceGroupName",
+    ]
+
+    def __relationships__(self) -> List[Relationship]:
+        relations = []
+        relations.append(ResourceGroup(id=self.managedResourceGroupName))
+        relations.append(
+            Relationship(
+                source=self.id,
+                source_label=self._labels()[1],
+                target=self.properties.managedResources.resourceGroup,
+                target_label=ResourceGroup._labels()[0],
+                relation=RelationLabels.Exposes,
+            )
+        )
+        return relations
+
+
+class Redis(ARMResource):
+    __arm_type__ = "microsoft.cache/redis"
+    __xfields__ = ["redisVersion", "publicNetworkAccess", "hostName", "port", "sslPort"]
+
+
+class StaticSite(ARMResource):
+    __arm_type__ = "microsoft.web/staticsites"
+    __xfields__ = [
+        "defaultHostname",
+        "repositoryUrl",
+        "branch",
+        "customDomains",
+        "provider",
+    ]
+
+
+class Site(ARMResource):
+    __arm_type__ = "microsoft.web/sites"
+    __xfields__ = [
+        "enabled",
+        "state",
+        "hostnames",
+        "enabledHostNames",
+        "repositorySiteName",
+    ]
+
+
 class SqlServer(ARMResource):
     __arm_type__ = "microsoft.sql/servers"
     __xfields__ = [
@@ -596,6 +765,22 @@ class Subnet(ARMResource):
                     relation=RelationLabels.HasConfig,
                 )
             )
+
+
+class UserAssignedIdentity(ARMResource):
+    __arm_type__ = "microsoft.managedidentity/userassignedidentities"
+    __xfields__ = ["tenantId", "principalId", "clientId"]
+
+    def __relationships__(self) -> List[Relationship]:
+        return [
+            Relationship(
+                source=self.id,
+                source_label=self._labels()[0],
+                target=self.principalId,
+                target_label=AADServicePrincipal._labels()[0],
+                relation=RelationLabels.Is,
+            )
+        ]
 
 
 class VirtualMachine(ARMResource):

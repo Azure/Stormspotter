@@ -85,7 +85,8 @@ async def process_file(neo4j: Neo4jDriver, file: Path) -> None:
                         log.warning(
                             f"No model available for {obj_json['type'].lower()}"
                         )
-                        print(obj_json)
+                        if logging.DEBUG >= log.level:
+                            print(obj_json)
     log.info(f"Finished reading {file.absolute()}")
 
 
