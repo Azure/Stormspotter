@@ -1,0 +1,38 @@
+[tool.poetry]
+name = "stormspotter"
+version = "1.0.0"
+description = "Azure Red Team tool for graphing Azure resources and Azure AD objects"
+authors = ["Leron Gray <legra@microsoft.com>"]
+license = "MIT"
+
+
+[tool.poetry.scripts]
+stormspotter = "stormspotter.main:app"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+typer = "^0.4.0"
+aiohttp = "^3.8.1"
+rich = "^10.13.0"
+msrestazure = "^0.6.4"
+azure-identity = "^1.7.1"
+uvloop = {version = "^0.16.0", platform = "linux"}
+msgpack = "^1.0.2"
+aiosqlite = "^0.17.0"
+azure-mgmt-resource = "^20.0.0"
+azure-mgmt-authorization = "^2.0.0"
+aiocypher = "^0.1.1"
+aiofiles = "^0.7.0"
+pydantic = "^1.8.2"
+
+[tool.poetry.dev-dependencies]
+isort = "^5.10.1"
+black = "^21.10b0"
+orjson = "^3.6.4"
+
+[tool.isort]
+profile = "black"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
