@@ -155,9 +155,3 @@ class Neo4jDriver:
         async with self.driver.session(database="neo4j") as session:
             async with session.begin_transaction() as tx:
                 return await tx.run(query).data()
-
-    async def stats(self):
-        """Returns the number of nodes in the database"""
-        return await self.query(
-            "MATCH (n) RETURN count(labels(n)) AS count, labels(n) AS labels"
-        )

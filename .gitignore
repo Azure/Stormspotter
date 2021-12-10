@@ -105,6 +105,8 @@ venv.bak/
 .mypy_cache/
 results*.zip
 
+node_modules/
+
 # others
 app/
 collector.*

@@ -285,6 +285,8 @@ class ARMResource(Node):
                     relation=RelationLabels.Is,
                 )
             )
+        else:
+            self.identity = None
 
         # Check additional relationships for subclasses
         if additional_rels := self.__relationships__():

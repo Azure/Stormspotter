@@ -24,6 +24,7 @@ azure-mgmt-authorization = "^2.0.0"
 aiocypher = "^0.1.1"
 aiofiles = "^0.7.0"
 pydantic = "^1.8.2"
+uvicorn = {extras = ["standard"], version = "^0.16.0"}
 
 [tool.poetry.dev-dependencies]
 isort = "^5.10.1"

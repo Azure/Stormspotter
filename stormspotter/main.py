@@ -2,8 +2,10 @@ import asyncio
 import logging
 from pathlib import Path
 from tarfile import TarFile, is_tarfile
+from typing import Optional
 
 import typer
+import uvicorn
 from aiocypher import Config
 from aiocypher.aioneo4j.driver import Driver
 from rich import inspect, print
@@ -69,3 +71,23 @@ def ingest(
     sqlite_files = list(results_dir.glob("*.sqlite"))
     neo4j_driver = Driver(Config(f"{server}:{port}", user, passwd))
     asyncio.run(start_parsing(sqlite_files, neo4j_driver), debug=True)
+
+
+@app.command(help="Start Stormspotter server")
+def server(
+    host: str = typer.Argument("127.0.0.1", help="Host address to listen on"),
+    port: int = typer.Argument(9090, help="Host port to listen on"),
+    reload: bool = typer.Option(
+        False, "--reload", help="Reload server on file change (dev mode)"
+    ),
+):
+    uvicorn.run(
+        "stormspotter.server.main:app",
+        host=host,
+        port=port,
+        reload=reload,
+        reload_includes=["*.py", "*.html", "*.js"],
+        log_level=logging.root.level,
+        use_colors=True,
+        log_config=None,
+    )
