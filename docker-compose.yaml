@@ -6,7 +6,7 @@ networks:
 
 services:
   stormspotter-neo4j:
-    image: neo4j:latest
+    image: neo4j:3.5.18
     restart: unless-stopped
     networks:
       - stormspotter-network
@@ -18,6 +18,17 @@ services:
       - NEO4J_dbms_memory_heap.initial_size=1G
       - NEO4J_dbms_memory_heap_max__size=1G
       - NEO4J_AUTH=neo4j/password
+    volumes:
+      - type: volume
+        source: logs
+        target: /logs
+        volume:
+          nocopy: true
+      - type: volume
+        source: data
+        target: /data
+        volume:
+          nocopy: true
 
   stormspotter-frontend:
     build:
@@ -41,3 +52,7 @@ services:
       - 9090:9090
     environment:
       - DOCKER_STORMSPOTTER=1
+
+volumes:
+  data:
+  logs:
