@@ -1,4 +1,4 @@
-FROM node:12-alpine
+FROM node:latest
 ENV VUE_APP_UPLOAD_URL=http://stormspotter-backend:9090/api/upload
 
 WORKDIR /usr/src/app
