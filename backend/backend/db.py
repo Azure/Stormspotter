@@ -106,8 +106,8 @@ class Neo4j:
                 statement = "CREATE INDEX ON : " + value + "(id)"
                 try:
                     self.query(statement)
-                except ClientError:
-                    pass
+                except ClientError as error:
+                    log.warning(error)
 
     def create_relationship(
         self,
