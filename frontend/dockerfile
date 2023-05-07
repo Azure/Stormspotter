@@ -2,7 +2,7 @@ FROM node:12-alpine
 ENV VUE_APP_UPLOAD_URL=http://stormspotter-backend:9090/api/upload
 
 WORKDIR /usr/src/app
-RUN npm install -g @quasar/cli
+RUN npm install -g @quasar/cli@1.1.1
 
 COPY dist/spa .
 EXPOSE 9091
